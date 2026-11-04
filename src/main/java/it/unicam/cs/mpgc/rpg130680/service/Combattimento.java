@@ -4,7 +4,6 @@ import it.unicam.cs.mpgc.rpg130680.model.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.Nemico;
 import it.unicam.cs.mpgc.rpg130680.model.Personaggio;
 import it.unicam.cs.mpgc.rpg130680.model.Soldato;
-
 import java.util.function.IntSupplier;
 
 public class Combattimento {
@@ -31,7 +30,11 @@ public class Combattimento {
 
     public int attaccaNemico(Soldato soldato, Nemico nemico){
         Arma arma= soldato.getArmaEquipaggiata()
-                .orElseThrow(() -> new IllegalStateException("arma equipaggiata non valido"));
+                .orElseThrow(() -> new IllegalStateException("nessuna arma equipaggiata"));
         return colpisci(arma, nemico);
+    }
+
+    public int attaccaSoldato(Nemico nemico, Soldato soldato){
+         return colpisci(nemico.getArma(), soldato);
     }
 }

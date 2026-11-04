@@ -62,4 +62,34 @@ public class CombattimentoTest {
         assertThrows(IllegalStateException.class, ()-> c.attaccaNemico(soldato,nemico));
     }
 
+    @Test
+    void colpoASegnoDiNemico(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversario",100, new Arma("Fucile",10,60,15));
+        Combattimento c= new Combattimento(()->0);
+        int danno= c.attaccaSoldato(nemico,soldato);
+        assertEquals(10,danno);
+        assertEquals(90,soldato.getPuntiVita());
+    }
+
+    @Test
+    void colpoMancatoDiNemico(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,60,15));
+        Combattimento c= new Combattimento(()->99);
+        int danno= c.attaccaSoldato(nemico,soldato);
+        assertEquals(0,danno);
+        assertEquals(100, soldato.getPuntiVita());
+    }
+
+    @Test
+    void armaDiNemicoSenzaMunizioni(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversoario",100,new Arma("Fucile", 10,60,0));
+        Combattimento c= new Combattimento(()->0);
+        int danno= c.attaccaSoldato(nemico,soldato);
+        assertEquals(100,soldato.getPuntiVita());
+        assertEquals(0,danno);
+    }
+
 }
