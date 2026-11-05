@@ -37,4 +37,13 @@ public class Combattimento {
     public int attaccaSoldato(Nemico nemico, Soldato soldato){
          return colpisci(nemico.getArma(), soldato);
     }
+
+    public EsitoTurno giocaTurno(Soldato soldato, Nemico nemico){
+        int dannoInflitto= attaccaNemico(soldato, nemico);
+        if(!nemico.isVivo()){
+            return new EsitoTurno(dannoInflitto,0,true,false);
+        }
+        int dannoSubito= attaccaSoldato(nemico, soldato);
+        return new EsitoTurno(dannoInflitto,dannoSubito,!nemico.isVivo(),!soldato.isVivo());
+    }
 }
