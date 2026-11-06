@@ -1,6 +1,6 @@
 package it.unicam.cs.mpgc.rpg130680.model.item;
 
-public class Arma {
+public class Arma implements Oggetto {
     private final String nome;
     private final int danno;
     private final int precisione;
@@ -24,6 +24,7 @@ public class Arma {
         this.precisione = precisione;
         this.munizioni = munizioni;
     }
+    @Override
     public String getNome() {
         return nome;
     }
@@ -31,9 +32,11 @@ public class Arma {
     public int getDanno() {
         return danno;
     }
+
     public int getPrecisione() {
         return precisione;
     }
+
     public int getMunizioni() {
         return munizioni;
     }
