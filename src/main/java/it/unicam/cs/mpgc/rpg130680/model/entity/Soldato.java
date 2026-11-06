@@ -1,4 +1,7 @@
-package it.unicam.cs.mpgc.rpg130680.model;
+package it.unicam.cs.mpgc.rpg130680.model.entity;
+
+import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
+import it.unicam.cs.mpgc.rpg130680.model.item.Inventario;
 
 import java.util.List;
 import java.util.Optional;

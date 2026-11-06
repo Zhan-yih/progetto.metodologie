@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg130680.model;
+package it.unicam.cs.mpgc.rpg130680.model.item;
 
 import org.junit.jupiter.api.Test;
 import java.util.List;

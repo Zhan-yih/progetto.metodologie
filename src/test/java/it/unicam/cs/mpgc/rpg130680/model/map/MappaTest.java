@@ -1,5 +1,7 @@
-package it.unicam.cs.mpgc.rpg130680.model;
+package it.unicam.cs.mpgc.rpg130680.model.map;
 
+import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;

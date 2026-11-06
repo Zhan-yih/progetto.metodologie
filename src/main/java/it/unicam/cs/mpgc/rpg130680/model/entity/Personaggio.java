@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg130680.model;
+package it.unicam.cs.mpgc.rpg130680.model.entity;
 
 public abstract class Personaggio {
     private final String nome;
