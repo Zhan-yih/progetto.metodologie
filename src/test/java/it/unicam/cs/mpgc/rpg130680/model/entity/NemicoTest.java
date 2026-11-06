@@ -27,4 +27,25 @@ public class NemicoTest {
         n.subisciDanno(500);
         assertFalse(n.isVivo());
     }
+
+    @Test
+    void nemicoNuovoNoStordito(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        assertFalse(nemico.isStordito());
+    }
+
+    @Test
+    void nemicoStordito(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        nemico.stordisci();
+        assertTrue(nemico.isStordito());
+    }
+
+    @Test
+    void nemicoRiprende(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        nemico.stordisci();
+        nemico.riprendi();
+        assertFalse(nemico.isStordito());
+    }
 }
