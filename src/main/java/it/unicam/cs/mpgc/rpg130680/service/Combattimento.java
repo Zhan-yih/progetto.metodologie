@@ -1,9 +1,9 @@
 package it.unicam.cs.mpgc.rpg130680.service;
 
-import it.unicam.cs.mpgc.rpg130680.model.Arma;
-import it.unicam.cs.mpgc.rpg130680.model.Nemico;
-import it.unicam.cs.mpgc.rpg130680.model.Personaggio;
-import it.unicam.cs.mpgc.rpg130680.model.Soldato;
+import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Personaggio;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import java.util.function.IntSupplier;
 
 public class Combattimento {
