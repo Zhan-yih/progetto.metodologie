@@ -151,4 +151,36 @@ public class CombattimentoTest {
         assertFalse(esito.soldatoSconfitto());
     }
 
+    @Test
+    void nemicoStorditoNonRisponde(){
+        Soldato soldato= new Soldato("io");
+        Arma arma= new Arma("Pistola", 15,75,12);
+        soldato.raccogliArma(arma);
+        soldato.equipaggiaArma(arma);
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,60,15));
+        nemico.stordisci();
+        assertTrue(nemico.isStordito());
+        Combattimento c= new Combattimento(()->0);
+        EsitoTurno esito= c.giocaTurno(soldato,nemico);
+        assertEquals(0,esito.dannoSubito());
+        assertEquals(100,soldato.getPuntiVita());
+        assertFalse(nemico.isStordito());
+    }
+
+    @Test
+    void turnoDopoRisponde(){
+        Soldato soldato= new Soldato("io");
+        Arma arma= new Arma("Pistola", 15,75,12);
+        soldato.raccogliArma(arma);
+        soldato.equipaggiaArma(arma);
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,60,15));
+        nemico.stordisci();
+        Combattimento c= new Combattimento(()->0);
+        EsitoTurno esito= c.giocaTurno(soldato,nemico);
+        EsitoTurno esito2= c.giocaTurno(soldato,nemico);
+        assertEquals(0,esito.dannoSubito());
+        assertEquals(10,esito2.dannoSubito());
+        assertEquals(90,soldato.getPuntiVita());
+    }
+
 }

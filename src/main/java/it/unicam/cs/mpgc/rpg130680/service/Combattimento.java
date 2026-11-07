@@ -43,6 +43,10 @@ public class Combattimento {
         if(!nemico.isVivo()){
             return new EsitoTurno(dannoInflitto,0,true,false);
         }
+        if(nemico.isStordito()){
+            nemico.riprendi();
+            return new EsitoTurno(dannoInflitto,0,false,false);
+        }
         int dannoSubito= attaccaSoldato(nemico, soldato);
         return new EsitoTurno(dannoInflitto,dannoSubito,!nemico.isVivo(),!soldato.isVivo());
     }

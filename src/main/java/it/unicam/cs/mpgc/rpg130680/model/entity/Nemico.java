@@ -9,7 +9,7 @@ public class Nemico extends Personaggio{
     public Nemico(String nome, int puntiVitaMax, Arma arma){
         super(nome, puntiVitaMax);
         if(arma == null){
-            throw new IllegalArgumentException("armqa nulla");
+            throw new IllegalArgumentException("arma nulla");
         }
         this.arma = arma;
     }
