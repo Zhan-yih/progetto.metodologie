@@ -23,13 +23,13 @@ public class NemicoTest {
 
     @Test
     void morteNemico(){
-        Nemico n = new Nemico("Avversario", 100,new Arma("Pistola",15,75,12));
+        Nemico n = new Nemico("avversario", 100,new Arma("Pistola",15,75,12));
         n.subisciDanno(500);
         assertFalse(n.isVivo());
     }
 
     @Test
-    void nemicoNuovoNoStordito(){
+    void nemicoNuovoNonStordito(){
         Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
         assertFalse(nemico.isStordito());
     }
@@ -47,5 +47,42 @@ public class NemicoTest {
         nemico.stordisci();
         nemico.riprendi();
         assertFalse(nemico.isStordito());
+    }
+
+    @Test
+    void accecamentoDuraNumeroDiTurni(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        nemico.accieca(2);
+        nemico.riduciAccecamento();
+        assertTrue(nemico.isAccecato());
+        nemico.riduciAccecamento();
+        assertFalse(nemico.isAccecato());
+    }
+
+    @Test
+    void nemiciNuovoNonAccecato(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        assertFalse(nemico.isAccecato());
+    }
+
+    @Test
+    void nemicoAccecato(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        nemico.accieca(2);
+        assertTrue(nemico.isAccecato());
+    }
+
+    @Test
+    void eccezioneTurniNonValido(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        assertThrows(IllegalArgumentException.class, () -> nemico.accieca(0) );
+        assertThrows(IllegalArgumentException.class, () -> nemico.accieca(-1));
+    }
+
+    @Test
+    void accecamentoNonCambiaNemicoNormali(){
+        Nemico nemico= new Nemico("avversario",100,new Arma("Pistola",15,75,12));
+        nemico.riduciAccecamento();
+        assertFalse(nemico.isAccecato());
     }
 }
