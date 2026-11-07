@@ -183,4 +183,50 @@ public class CombattimentoTest {
         assertEquals(90,soldato.getPuntiVita());
     }
 
+    @Test
+    void nemicoAccecatoMancaColpo(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,60,15));
+        nemico.accieca(2);
+        Combattimento c= new Combattimento(()->40);
+        int danno= c.attaccaSoldato(nemico, soldato);
+        assertEquals(0,danno);
+        assertEquals(100,soldato.getPuntiVita());
+    }
+
+    @Test
+    void nonAccecatoColpisce(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,60,15));
+        Combattimento c= new Combattimento(()->40);
+        int danno= c.attaccaSoldato(nemico, soldato);
+        assertEquals(10,danno);
+        assertEquals(90,soldato.getPuntiVita());
+    }
+
+    @Test
+    void precisioneNoNegativo(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,20,15));
+        nemico.accieca(2);
+        Combattimento c= new Combattimento(()->0);
+        int danno= c.attaccaSoldato(nemico, soldato);
+        assertEquals(0,danno);
+        assertEquals(100,soldato.getPuntiVita());
+    }
+
+    @Test
+    void nemicoTornaNormaleDopoAccecamento(){
+        Soldato soldato= new Soldato("io");
+        Arma arma= new Arma("Pistola", 15,75,12);
+        soldato.raccogliArma(arma);
+        soldato.equipaggiaArma(arma);
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile", 10,60,15));
+        nemico.accieca(1);
+        Combattimento c= new Combattimento(()->0);
+        c.giocaTurno(soldato,nemico);
+        assertFalse(nemico.isAccecato());
+
+    }
+
 }
