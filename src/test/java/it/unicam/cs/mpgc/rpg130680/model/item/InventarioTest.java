@@ -54,4 +54,48 @@ public class InventarioTest {
         assertEquals(1, armi.size());
         assertEquals(a, armi.get(0));
     }
+
+    @Test
+    void inventarioNuovoNonHaConsumabile(){
+        Inventario inv = new Inventario();
+        assertTrue(inv.getConsumabili().isEmpty());
+    }
+
+    @Test
+    void contieneConsumabile(){
+        Inventario inv = new Inventario();
+        Consumabile con= new KitMedico(30);
+        inv.aggiungiConsumabile(con);
+        assertTrue(inv.getConsumabili().contains(con));
+    }
+
+    @Test
+    void rimuoviConsumabile(){
+        Inventario inv = new Inventario();
+        Consumabile con= new KitMedico(30);
+        inv.aggiungiConsumabile(con);
+        assertFalse(inv.isVuoto());
+        assertTrue(inv.rimuoviConsumabile(con));
+        assertTrue(inv.isVuoto());
+    }
+
+    @Test
+    void eccezioneAggiungiConsumabilenullo(){
+        Inventario inv = new Inventario();
+        assertThrows(IllegalArgumentException.class, () -> inv.aggiungiConsumabile(null));
+    }
+
+    @Test
+    void inventarioNonVuotoUnConsumabile(){
+        Inventario inv = new Inventario();
+        Consumabile con = new KitMedico(30);
+        inv.aggiungiConsumabile(con);
+        assertFalse(inv.isVuoto());
+    }
+
+    @Test
+    void rimuoviConsumabileAssente(){
+        Inventario inv = new Inventario();
+        assertFalse(inv.rimuoviConsumabile(new KitMedico(30)));
+    }
 }

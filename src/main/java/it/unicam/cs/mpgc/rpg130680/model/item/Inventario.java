@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class Inventario {
     private final List<Arma> armi = new ArrayList<>();
+    private final List<Consumabile> consumabili = new ArrayList<>();
 
     public void aggiungiArma(Arma arma) {
         if(arma == null){
@@ -26,7 +27,7 @@ public class Inventario {
     }
 
     public boolean isVuoto(){
-        return armi.isEmpty();
+        return armi.isEmpty() && consumabili.isEmpty();
     }
 
     public List<Arma> armiUtilizzabili(){
@@ -34,4 +35,20 @@ public class Inventario {
                 .filter(a-> a.haMunizioni())
                 .toList();
     }
+
+    public void aggiungiConsumabile(Consumabile c){
+        if(c == null){
+            throw new IllegalArgumentException("Consumabile nullo");
+        }
+        consumabili.add(c);
+    }
+
+    public boolean rimuoviConsumabile(Consumabile c){
+        return consumabili.remove(c);
+    }
+
+    public List<Consumabile> getConsumabili() {
+        return List.copyOf(consumabili);
+    }
+
 }
