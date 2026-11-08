@@ -1,7 +1,10 @@
 package it.unicam.cs.mpgc.rpg130680.model.map;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
+import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
+import it.unicam.cs.mpgc.rpg130680.model.item.KitMedico;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
@@ -60,4 +63,60 @@ public class StanzaTest {
         Stanza stanza = new Stanza("prova","prova");
         assertThrows(IllegalArgumentException.class, () -> stanza.inserisciNemico(null));
     }
+
+    @Test
+    void stanzaNuovaNonHaConsumabili(){
+        Stanza stanza = new Stanza("prova","prova");
+        assertTrue(stanza.prendiConsumabili().isEmpty());
+    }
+
+    @Test
+    void prendiConsumabiliRestituisceESvuotaLaStanza(){
+        Stanza stanza = new Stanza("prova","prova");
+        Consumabile consumabile = new KitMedico(30);
+        stanza.aggiungiConsumabile(consumabile);
+        List<Consumabile> prese= stanza.prendiConsumabili();
+        assertTrue(prese.contains(consumabile));
+        assertTrue(stanza.prendiConsumabili().isEmpty());
+    }
+
+    @Test
+    void eccezioneAggiuntaConsumabileNullo(){
+        Stanza stanza = new Stanza("prova","prova");
+        assertThrows(IllegalArgumentException.class, () -> stanza.aggiungiConsumabile(null));
+    }
+
+    @Test
+    void nuovaStanzaNonHaOstaggi(){
+        Stanza stanza = new Stanza("prova","prova");
+        assertTrue(stanza.getOstaggi().isEmpty());
+    }
+
+    @Test
+    void aggiungiOstaggioContieneOstatggio(){
+        Stanza stanza = new Stanza("prova","prova");
+        Ostaggio ost= new Ostaggio("prova");
+        stanza.aggiungiOstaggio(ost);
+        assertTrue(stanza.getOstaggi().contains(ost));
+    }
+
+    @Test
+    void eccezioneAggiuntaOstaggioNullo(){
+        Stanza stanza = new Stanza("prova","prova");
+        assertThrows(IllegalArgumentException.class, () -> stanza.aggiungiOstaggio(null));
+    }
+
+    @Test
+    void ostaggiDaLiberareContieneSoloQuelliNonLiberati(){
+        Stanza stanza = new Stanza("prova","prova");
+        Ostaggio liberato= new Ostaggio("prova1");
+        Ostaggio prigioniero= new Ostaggio("prova2");
+        stanza.aggiungiOstaggio(liberato);
+        stanza.aggiungiOstaggio(prigioniero);
+        liberato.libera();
+        List<Ostaggio> daLiberare= stanza.ostaggiDaLiberare();
+        assertEquals(1, daLiberare.size());
+        assertEquals(prigioniero, daLiberare.get(0));
+    }
+
 }

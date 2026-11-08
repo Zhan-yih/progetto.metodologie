@@ -1,7 +1,9 @@
 package it.unicam.cs.mpgc.rpg130680.model.map;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
+import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,8 @@ public class Stanza {
     private final String nome;
     private final String descrizione;
     private final List<Arma> armi = new ArrayList<>();
+    private final List<Consumabile> consumabili = new ArrayList<>();
+    private final List<Ostaggio> ostaggi = new ArrayList<>();
     private Nemico nemico;
 
     public Stanza(String nome, String descrizione) {
@@ -58,5 +62,35 @@ public class Stanza {
 
     public void rimuoviNemico(){
         this.nemico = null;
+    }
+
+    public void aggiungiConsumabile(Consumabile consumabile) {
+        if(consumabile == null){
+            throw new IllegalArgumentException("consumabile non valido");
+        }
+        consumabili.add(consumabile);
+    }
+
+    public List<Consumabile> prendiConsumabili() {
+        List<Consumabile> copia = List.copyOf(consumabili);
+        consumabili.clear();
+        return copia;
+    }
+
+    public void aggiungiOstaggio(Ostaggio ostaggio) {
+        if(ostaggio == null){
+            throw new IllegalArgumentException("ostaggio non valido");
+        }
+        ostaggi.add(ostaggio);
+    }
+
+    public List<Ostaggio> getOstaggi() {
+        return List.copyOf(ostaggi);
+    }
+
+    public List<Ostaggio> ostaggiDaLiberare() {
+        return ostaggi.stream()
+                .filter(o-> !o.isLiberato())
+                .toList();
     }
 }
