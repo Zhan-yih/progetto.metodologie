@@ -1,0 +1,36 @@
+package it.unicam.cs.mpgc.rpg130680.service;
+
+import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
+import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
+import java.util.HashSet;
+import java.util.Set;
+
+public class Partita {
+    private final Soldato soldato;
+    private final Mappa mappa;
+    private final Combattimento combattimento;
+    private final Set<Integer> stanzeEsplorate= new HashSet<>();
+    private int stanzaCorrente= -1;
+
+    public Partita(Soldato soldato, Mappa mappa, Combattimento combattimento){
+        if(soldato == null || mappa == null || combattimento == null){
+            throw new IllegalArgumentException("valorre non valido");
+        }
+        this.soldato = soldato;
+        this.mappa = mappa;
+        this.combattimento = combattimento;
+    }
+
+    public StatoPartita getStato(){
+        if(!soldato.isVivo()){
+            return StatoPartita.SCONFITTA;
+        }
+        boolean tutteEsplorate= stanzeEsplorate.size() == mappa.numeroStanze();
+        boolean nessunOstaggioRimasto= mappa.getStanze().stream()
+                .allMatch(s-> s.ostaggiDaLiberare().isEmpty());
+        if(tutteEsplorate && nessunOstaggioRimasto){
+            return StatoPartita.VITTORIA;
+        }
+        return StatoPartita.IN_CORSO;
+    }
+}
