@@ -58,7 +58,7 @@ public class SoldatoTest {
     }
 
     @Test
-    void eccezioneConsumabileNonRAccolto(){
+    void eccezioneConsumabileNonRaccolto(){
         Soldato s = new Soldato("io");
         Consumabile con= new KitMedico(30);
         assertThrows(IllegalArgumentException.class, () -> s.usaConsumabile(con,null));
