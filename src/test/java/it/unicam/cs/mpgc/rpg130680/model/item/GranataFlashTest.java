@@ -28,4 +28,9 @@ public class GranataFlashTest {
         GranataFlash granata= new GranataFlash();
         assertEquals("Granata flash", granata.getNome());
     }
+
+    @Test
+    void granataFlashRichiedeNemicoUso(){
+        assertTrue(new GranataFlash().richiedeNemico());
+    }
 }

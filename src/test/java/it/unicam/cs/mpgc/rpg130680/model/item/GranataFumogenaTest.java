@@ -28,4 +28,9 @@ public class GranataFumogenaTest {
         GranataFumogena granata= new GranataFumogena();
         assertEquals("Granata fumogena",granata.getNome());
     }
+
+    @Test
+    void granataFumogenaRichiedeNemicoUso(){
+        assertTrue(new GranataFumogena().richiedeNemico());
+    }
 }

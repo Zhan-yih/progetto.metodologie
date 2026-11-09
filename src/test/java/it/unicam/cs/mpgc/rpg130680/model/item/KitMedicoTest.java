@@ -42,4 +42,8 @@ public class KitMedicoTest {
         assertThrows(IllegalArgumentException.class,()->kit.usa(null,null));
     }
 
+    @Test
+    void noRichiedeNemico(){
+        assertFalse(new KitMedico(30).richiedeNemico());
+    }
 }

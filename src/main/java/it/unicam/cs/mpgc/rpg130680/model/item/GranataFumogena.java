@@ -18,4 +18,9 @@ public class GranataFumogena implements Consumabile{
         }
         nemico.accieca(DURATA);
     }
+
+    @Override
+    public boolean richiedeNemico(){
+        return true;
+    }
 }

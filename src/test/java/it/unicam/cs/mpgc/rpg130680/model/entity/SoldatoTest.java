@@ -72,4 +72,27 @@ public class SoldatoTest {
         assertThrows(IllegalArgumentException.class, ()-> s.usaConsumabile(flash,null));
         assertTrue(s.getConsumabili().contains(flash));
     }
+
+    @Test
+    void dopoScartaNonContieneConsumabile(){
+        Soldato s = new Soldato("io");
+        Consumabile con= new GranataFlash();
+        s.raccogliConsumabile(con);
+        s.scartaConsumabile(con);
+        assertTrue(s.getConsumabili().isEmpty());
+    }
+
+    @Test
+    void eccezioneScartareConsumabileNonRaccolto(){
+        Soldato s = new Soldato("io");
+        Consumabile con= new GranataFlash();
+        assertThrows(IllegalArgumentException.class, ()-> s.scartaConsumabile(con));
+    }
+
+    @Test
+    void eccezioneScartareConsumabileNullo(){
+        Soldato s = new Soldato("io");
+        assertThrows(IllegalArgumentException.class, ()-> s.scartaConsumabile(null));
+    }
+
 }

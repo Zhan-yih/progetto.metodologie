@@ -51,4 +51,11 @@ public class Soldato extends Personaggio {
         inventario.rimuoviConsumabile(c);
     }
 
+    public void scartaConsumabile(Consumabile c){
+        if(c == null || !inventario.getConsumabili().contains(c)){
+            throw new IllegalArgumentException("Consumabile non posseduto");
+        }
+        inventario.rimuoviConsumabile(c);
+    }
+
 }

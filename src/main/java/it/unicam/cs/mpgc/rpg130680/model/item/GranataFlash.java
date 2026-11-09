@@ -16,4 +16,9 @@ public class GranataFlash implements Consumabile {
         }
         nemico.stordisci();
     }
+
+    @Override
+    public boolean richiedeNemico(){
+        return true;
+    }
 }
