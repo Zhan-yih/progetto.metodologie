@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg130680.service;
 
+import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
@@ -53,5 +54,17 @@ public class Partita {
             return Optional.empty();
         }
         return Optional.of(mappa.getStanza(stanzaCorrente));
+    }
+
+    public EsitoTurno combatti(){
+        Stanza stanza= getStanzaCorrente()
+                .orElseThrow(()-> new IllegalStateException("nessuna stanza corrente"));
+        Nemico nemico= stanza.getNemico()
+                .orElseThrow(()-> new IllegalStateException("non ci sono nemici"));
+        EsitoTurno esito= combattimento.giocaTurno(soldato, nemico);
+        if(esito.nemicoSconfitto()){
+            stanza.rimuoviNemico();
+        }
+        return esito;
     }
 }
