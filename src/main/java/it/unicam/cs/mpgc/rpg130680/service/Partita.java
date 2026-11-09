@@ -2,7 +2,9 @@ package it.unicam.cs.mpgc.rpg130680.service;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
+import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class Partita {
@@ -32,5 +34,24 @@ public class Partita {
             return StatoPartita.VITTORIA;
         }
         return StatoPartita.IN_CORSO;
+    }
+
+    public void entraInStanza(int indice){
+        if(getStato() != StatoPartita.IN_CORSO){
+            throw new IllegalStateException("stato non è in corso");
+        }
+        //controlla che l'indice sia valido
+        mappa.getStanza(indice);
+        if(stanzeEsplorate.contains(indice)){
+            throw new IllegalArgumentException("stanza già esplorata");
+        }
+        stanzaCorrente= indice;
+    }
+
+    public Optional<Stanza> getStanzaCorrente(){
+        if(stanzaCorrente == -1){
+            return Optional.empty();
+        }
+        return Optional.of(mappa.getStanza(stanzaCorrente));
     }
 }
