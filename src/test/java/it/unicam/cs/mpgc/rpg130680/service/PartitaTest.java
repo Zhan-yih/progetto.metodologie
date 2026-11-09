@@ -12,6 +12,8 @@ import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 import static it.unicam.cs.mpgc.rpg130680.service.StatoPartita.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -299,6 +301,50 @@ public class PartitaTest {
         Partita partita= new Partita(soldato, mappa, combattimento);
         partita.entraInStanza(0);
         assertThrows(IllegalArgumentException.class, ()-> partita.usaConsumabile(null));
+    }
+
+    private Mappa creaMappa() {
+        return new Mappa(List.of(
+                new Stanza("Ingresso", "Una sala vuota"),
+                new Stanza("Magazzino", "Casse impilate")));
+    }
+
+    @Test
+    void costruttoreRipristinaStanzeEsplorateEStanzaCorrente() {
+        Partita partita = new Partita(new Soldato("Rambo"), creaMappa(),
+                new Combattimento(() -> 0), Set.of(0), 1);
+
+        assertEquals(Set.of(0), partita.getStanzeEsplorate());
+        assertEquals(1, partita.getIndiceStanzaCorrente());
+    }
+
+    @Test
+    void costruttoreAccettaNessunaStanzaCorrente() {
+        Partita partita = new Partita(new Soldato("Rambo"), creaMappa(),
+                new Combattimento(() -> 0), Set.of(0), -1);
+
+        assertEquals(-1, partita.getIndiceStanzaCorrente());
+    }
+
+    @Test
+    void costruttoreRifiutaStanzaEsplorataNonValida() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new Partita(new Soldato("Rambo"), creaMappa(),
+                        new Combattimento(() -> 0), Set.of(99), -1));
+    }
+
+    @Test
+    void costruttoreRifiutaStanzaCorrenteNonValida() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new Partita(new Soldato("Rambo"), creaMappa(),
+                        new Combattimento(() -> 0), Set.of(), 99));
+    }
+
+    @Test
+    void costruttoreRifiutaStanzaCorrenteGiaEsplorata() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new Partita(new Soldato("Rambo"), creaMappa(),
+                        new Combattimento(() -> 0), Set.of(0), 0));
     }
 }
 

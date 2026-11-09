@@ -19,11 +19,28 @@ public class Partita {
 
     public Partita(Soldato soldato, Mappa mappa, Combattimento combattimento){
         if(soldato == null || mappa == null || combattimento == null){
-            throw new IllegalArgumentException("valorre non valido");
+            throw new IllegalArgumentException("valore non valido");
         }
         this.soldato = soldato;
         this.mappa = mappa;
         this.combattimento = combattimento;
+    }
+
+    public Partita(Soldato soldato, Mappa mappa, Combattimento combattimento, Set<Integer> stanzeEsplorate, int stanzaCorrente){
+        this(soldato, mappa, combattimento);
+        if(stanzeEsplorate == null){
+            throw new IllegalArgumentException("stanze esplorate nulle");
+        }
+        stanzeEsplorate.forEach(mappa::getStanza);
+        if(stanzaCorrente != -1){
+            mappa.getStanza(stanzaCorrente);
+            if(stanzeEsplorate.contains(stanzaCorrente)){
+                throw new IllegalArgumentException("stanza corrente già esplorata");
+            }
+        }
+        this.stanzeEsplorate.addAll(stanzeEsplorate);
+        this.stanzaCorrente= stanzaCorrente;
+
     }
 
     public StatoPartita getStato(){
@@ -74,7 +91,7 @@ public class Partita {
         Stanza stanza= getStanzaCorrente()
                 .orElseThrow(()-> new IllegalStateException("nessuna stanza corrente"));
         if(stanza.getNemico().isPresent()){
-            throw new IllegalStateException("nemico anocra presente");
+            throw new IllegalStateException("nemico ancora presente");
         }
         stanza.prendiArmi().forEach(soldato::raccogliArma);
         stanza.prendiConsumabili().forEach(soldato::raccogliConsumabile);
@@ -95,5 +112,21 @@ public class Partita {
             return;
         }
         soldato.usaConsumabile(c, nemico.orElse(null));
+    }
+
+    public Soldato getSoldato(){
+        return soldato;
+    }
+
+    public Mappa getMappa(){
+        return mappa;
+    }
+
+    public Set<Integer> getStanzeEsplorate(){
+        return Set.copyOf(stanzeEsplorate);
+    }
+
+    public int getIndiceStanzaCorrente(){
+        return stanzaCorrente;
     }
 }
