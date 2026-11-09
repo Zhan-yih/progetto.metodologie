@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg130680.service;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
@@ -66,5 +67,18 @@ public class Partita {
             stanza.rimuoviNemico();
         }
         return esito;
+    }
+
+    public void completaStanza(){
+        Stanza stanza= getStanzaCorrente()
+                .orElseThrow(()-> new IllegalStateException("nessuna stanza corrente"));
+        if(stanza.getNemico().isPresent()){
+            throw new IllegalStateException("nemico anocra presente");
+        }
+        stanza.prendiArmi().forEach(soldato::raccogliArma);
+        stanza.prendiConsumabili().forEach(soldato::raccogliConsumabile);
+        stanza.ostaggiDaLiberare().forEach(Ostaggio::libera);
+        stanzeEsplorate.add(stanzaCorrente);
+        stanzaCorrente= -1;
     }
 }

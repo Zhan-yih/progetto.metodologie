@@ -1,8 +1,11 @@
 package it.unicam.cs.mpgc.rpg130680.service;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
+import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
+import it.unicam.cs.mpgc.rpg130680.model.item.KitMedico;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
 import org.junit.jupiter.api.Test;
@@ -158,5 +161,75 @@ public class PartitaTest {
         assertThrows(IllegalStateException.class, ()-> partita.combatti());
     }
 
+    @Test
+    void completaStanzaRaccogliOggettiELasciaStanza(){
+        Soldato soldato= new Soldato("io");
+        Arma arma= new Arma("Pistola",15,75,12);
+        Consumabile kit= new KitMedico(30);
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        stanza.aggiungiArma(arma);
+        stanza.aggiungiConsumabile(kit);
+        stanza.aggiungiOstaggio(new Ostaggio("prova"));
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.completaStanza();
+        assertTrue(soldato.getArmi().contains(arma));
+        assertTrue(soldato.getConsumabili().contains(kit));
+        assertTrue(partita.getStanzaCorrente().isEmpty());
+    }
+
+    @Test
+    void completaStanzaOstaggioLiberato(){
+        Soldato soldato= new Soldato("io");
+        Ostaggio ostaggio= new Ostaggio("prova");
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        stanza.aggiungiOstaggio(ostaggio);
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.completaStanza();
+        assertTrue(ostaggio.isLiberato());
+    }
+
+    @Test
+    void eccezioneNemicoPresenteCompletaStanza(){
+        Soldato soldato= new Soldato("io");
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile",10,60,15));
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        stanza.inserisciNemico(nemico);
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        assertThrows(IllegalStateException.class, ()-> partita.completaStanza());
+    }
+
+    @Test
+    void stanzaCompletaVittoria(){
+        Soldato soldato= new Soldato("io");
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.completaStanza();
+        assertEquals(VITTORIA, partita.getStato());
+    }
+
+    @Test
+    void eccezioneStanzaGiaEsplorata(){
+        Soldato soldato= new Soldato("io");
+        Stanza stanza1= new Stanza("ingresso", "Una porta blindata");
+        Stanza stanza2= new Stanza("sala", "Una porta blindata");
+        Mappa mappa= new Mappa(List.of( stanza1, stanza2));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.completaStanza();
+        assertThrows(IllegalArgumentException.class, ()-> partita.entraInStanza(0));
+    }
 }
 
