@@ -5,6 +5,7 @@ import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
+import it.unicam.cs.mpgc.rpg130680.model.item.GranataFlash;
 import it.unicam.cs.mpgc.rpg130680.model.item.KitMedico;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
@@ -230,6 +231,74 @@ public class PartitaTest {
         partita.entraInStanza(0);
         partita.completaStanza();
         assertThrows(IllegalArgumentException.class, ()-> partita.entraInStanza(0));
+    }
+
+    @Test
+    void kitMedicoSenzaIlNemiciCuraSoldato(){
+        Soldato soldato= new Soldato("io");
+        Consumabile kit= new KitMedico(30);
+        soldato.subisciDanno(50);
+        soldato.raccogliConsumabile(kit);
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.usaConsumabile(kit);
+        assertEquals(80,soldato.getPuntiVita());
+        assertFalse(soldato.getConsumabili().contains(kit));
+    }
+
+    @Test
+    void senzaNemicoGranataFlashScarta(){
+        Soldato soldato= new Soldato("io");
+        Consumabile granata= new GranataFlash();
+        soldato.raccogliConsumabile(granata);
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.usaConsumabile(granata);
+        assertFalse(soldato.getConsumabili().contains(granata));
+    }
+
+    @Test
+    void flashConNemico(){
+        Soldato soldato= new Soldato("io");
+        Consumabile granata= new GranataFlash();
+        soldato.raccogliConsumabile(granata);
+        Nemico nemico= new Nemico("avversario",100,new Arma("Fucile",10,60,15));
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        stanza.inserisciNemico(nemico);
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        partita.usaConsumabile(granata);
+        assertTrue(nemico.isStordito());
+        assertFalse(soldato.getConsumabili().contains(granata));
+    }
+
+    @Test
+    void senzaStanzaCorrenteEccezione(){
+        Soldato soldato= new Soldato("io");
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        assertThrows(IllegalStateException.class, ()-> partita.usaConsumabile(new KitMedico(30)));
+    }
+
+    @Test
+    void eccezioneConsumabileNullo(){
+        Soldato soldato= new Soldato("io");
+        Stanza stanza= new Stanza("ingresso", "Una porta blindata");
+        Mappa mappa= new Mappa(List.of( stanza));
+        Combattimento combattimento= new Combattimento(()->0);
+        Partita partita= new Partita(soldato, mappa, combattimento);
+        partita.entraInStanza(0);
+        assertThrows(IllegalArgumentException.class, ()-> partita.usaConsumabile(null));
     }
 }
 

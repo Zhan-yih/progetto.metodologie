@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.rpg130680.service;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
+import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
 import java.util.HashSet;
@@ -80,5 +81,19 @@ public class Partita {
         stanza.ostaggiDaLiberare().forEach(Ostaggio::libera);
         stanzeEsplorate.add(stanzaCorrente);
         stanzaCorrente= -1;
+    }
+
+    public void usaConsumabile(Consumabile c){
+        if(c == null){
+            throw new IllegalArgumentException("consumabile nullo");
+        }
+        Stanza stanza= getStanzaCorrente()
+                .orElseThrow(()-> new IllegalStateException("nessuna stanza corrente"));
+        Optional<Nemico> nemico= stanza.getNemico();
+        if(c.richiedeNemico() && nemico.isEmpty()){
+            soldato.scartaConsumabile(c);
+            return;
+        }
+        soldato.usaConsumabile(c, nemico.orElse(null));
     }
 }
