@@ -93,4 +93,12 @@ public class Stanza {
                 .filter(o-> !o.isLiberato())
                 .toList();
     }
+
+    public List<Arma> getArmi() {
+        return List.copyOf(armi);
+    }
+
+    public List<Consumabile> getConsumabili() {
+        return List.copyOf(consumabili);
+    }
 }

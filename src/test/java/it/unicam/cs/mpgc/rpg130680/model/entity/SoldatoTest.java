@@ -94,5 +94,4 @@ public class SoldatoTest {
         Soldato s = new Soldato("io");
         assertThrows(IllegalArgumentException.class, ()-> s.scartaConsumabile(null));
     }
-
 }

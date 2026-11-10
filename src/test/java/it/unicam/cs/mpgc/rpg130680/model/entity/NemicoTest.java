@@ -85,4 +85,14 @@ public class NemicoTest {
         nemico.riduciAccecamento();
         assertFalse(nemico.isAccecato());
     }
+
+    @Test
+    void turniAccecamentoSiAggiornano() {
+        Nemico nemico = new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15));
+        assertEquals(0, nemico.getTurniAccecamento());
+        nemico.accieca(2);
+        assertEquals(2, nemico.getTurniAccecamento());
+        nemico.riduciAccecamento();
+        assertEquals(1, nemico.getTurniAccecamento());
+    }
 }

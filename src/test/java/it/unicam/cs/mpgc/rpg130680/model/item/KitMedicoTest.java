@@ -46,4 +46,9 @@ public class KitMedicoTest {
     void noRichiedeNemico(){
         assertFalse(new KitMedico(30).richiedeNemico());
     }
+
+    @Test
+    void getQuantitaRestituisceLaQuantita() {
+        assertEquals(30, new KitMedico(30).getQuantita());
+    }
 }

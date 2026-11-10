@@ -25,4 +25,8 @@ public class KitMedico implements Consumabile {
         }
         soldato.cura(quantita);
     }
+
+    public int getQuantita() {
+        return quantita;
+    }
 }

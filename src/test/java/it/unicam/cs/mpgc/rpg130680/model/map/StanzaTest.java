@@ -119,4 +119,22 @@ public class StanzaTest {
         assertEquals(prigioniero, daLiberare.get(0));
     }
 
+    @Test
+    void getArmiNonSvuotaLaStanza() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        Arma arma = new Arma("Pistola", 15, 75, 12);
+        stanza.aggiungiArma(arma);
+        assertTrue(stanza.getArmi().contains(arma));
+        assertTrue(stanza.getArmi().contains(arma));
+    }
+
+    @Test
+    void getConsumabiliNonSvuotaLaStanza() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        Consumabile kit = new KitMedico(30);
+        stanza.aggiungiConsumabile(kit);
+        assertTrue(stanza.getConsumabili().contains(kit));
+        assertTrue(stanza.getConsumabili().contains(kit));
+    }
+
 }

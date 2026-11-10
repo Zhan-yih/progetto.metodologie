@@ -47,4 +47,8 @@ public class Nemico extends Personaggio{
             turniAccecato--;
         }
     }
+
+    public int getTurniAccecamento(){
+        return turniAccecato;
+    }
 }
