@@ -1,5 +1,9 @@
 package it.unicam.cs.mpgc.rpg130680.persistence;
 
+import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
+import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
+import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
+import it.unicam.cs.mpgc.rpg130680.model.item.KitMedico;
 import it.unicam.cs.mpgc.rpg130680.service.Combattimento;
 import it.unicam.cs.mpgc.rpg130680.service.Partita;
 import org.w3c.dom.Document;
@@ -50,6 +54,47 @@ public class XmlSalvataggioRepository implements SalvataggioRepository {
     private Element creaPartita(Document doc, Partita partita){
         Element radice=doc.createElement("partita");
         radice.setAttribute("stanzaCorrente", String.valueOf(partita.getIndiceStanzaCorrente()));
+        radice.appendChild(creaSoldato(doc, partita.getSoldato()));
         return radice;
     }
+
+    private Element creaArma(Document doc, Arma arma) {
+        Element e = doc.createElement("arma");
+        e.setAttribute("nome", arma.getNome());
+        e.setAttribute("danno", String.valueOf(arma.getDanno()));
+        e.setAttribute("precisione", String.valueOf(arma.getPrecisione()));
+        e.setAttribute("munizioni", String.valueOf(arma.getMunizioni()));
+        return e;
+    }
+
+    private Element creaSoldato(Document doc, Soldato soldato) {
+        Element e = doc.createElement("soldato");
+        e.setAttribute("nome", soldato.getNome());
+        e.setAttribute("punti", String.valueOf(soldato.getPuntiVita()));
+
+        int indiceArma = soldato.getArmaEquipaggiata()
+                .map(a -> soldato.getArmi().indexOf(a))
+                .orElse(-1);
+        e.setAttribute("armaEquipaggiata", String.valueOf(indiceArma));
+
+        Element armi = doc.createElement("armi");
+        soldato.getArmi().forEach(a -> armi.appendChild(creaArma(doc, a)));
+        e.appendChild(armi);
+
+        Element consumabili = doc.createElement("consumabili");
+        soldato.getConsumabili().forEach(c -> consumabili.appendChild(creaConsumabile(doc, c)));
+        e.appendChild(consumabili);
+
+        return e;
+    }
+
+    private Element creaConsumabile(Document doc, Consumabile c) {
+        Element e = doc.createElement("consumabile");
+        e.setAttribute("tipo", ConvertitoreConsumabile.tipoDi(c));
+        if (c instanceof KitMedico kit) {
+            e.setAttribute("quantita", String.valueOf(kit.getQuantita()));
+        }
+        return e;
+    }
+
 }
