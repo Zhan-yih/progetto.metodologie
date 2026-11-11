@@ -12,6 +12,8 @@ import it.unicam.cs.mpgc.rpg130680.service.Combattimento;
 import it.unicam.cs.mpgc.rpg130680.service.Partita;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -20,7 +22,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class XmlSalvataggioRepository implements SalvataggioRepository {
     private final Path file;
@@ -52,7 +57,28 @@ public class XmlSalvataggioRepository implements SalvataggioRepository {
 
     @Override
     public Partita carica(Combattimento combattimento){
-        throw new UnsupportedOperationException("da implementare");
+        if (combattimento == null) {
+            throw new IllegalArgumentException("combattimento nullo");
+        }
+        try {
+            Document doc = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder().parse(file.toFile());
+            LettoreXml l = new LettoreXml();
+            Element radice = doc.getDocumentElement();
+
+            Soldato soldato = leggiSoldato(l, l.elementi(radice, "soldato").get(0));
+            Mappa mappa = leggiMappa(l, radice);
+            Set<Integer> esplorate = l.elementi(radice, "esplorate/stanza").stream()
+                    .map(s -> l.intero(s, "@indice"))
+                    .collect(Collectors.toSet());
+            int stanzaCorrente = l.intero(radice, "@stanzaCorrente");
+
+            return new Partita(soldato, mappa, combattimento, esplorate, stanzaCorrente);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            throw new SalvataggioException("Errore nella lettura del file", e);
+        } catch (IllegalArgumentException | IllegalStateException | IndexOutOfBoundsException e) {
+            throw new SalvataggioException("File di salvataggio non valido", e);
+        }
     }
 
     private Element creaPartita(Document doc, Partita partita){
