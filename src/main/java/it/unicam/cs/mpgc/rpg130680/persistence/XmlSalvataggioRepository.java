@@ -1,9 +1,13 @@
 package it.unicam.cs.mpgc.rpg130680.persistence;
 
+import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 import it.unicam.cs.mpgc.rpg130680.model.item.KitMedico;
+import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
+import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
 import it.unicam.cs.mpgc.rpg130680.service.Combattimento;
 import it.unicam.cs.mpgc.rpg130680.service.Partita;
 import org.w3c.dom.Document;
@@ -55,6 +59,8 @@ public class XmlSalvataggioRepository implements SalvataggioRepository {
         Element radice=doc.createElement("partita");
         radice.setAttribute("stanzaCorrente", String.valueOf(partita.getIndiceStanzaCorrente()));
         radice.appendChild(creaSoldato(doc, partita.getSoldato()));
+        radice.appendChild(creaEsplorate(doc, partita));
+        radice.appendChild(creaMappa(doc, partita.getMappa()));
         return radice;
     }
 
@@ -71,16 +77,13 @@ public class XmlSalvataggioRepository implements SalvataggioRepository {
         Element e = doc.createElement("soldato");
         e.setAttribute("nome", soldato.getNome());
         e.setAttribute("punti", String.valueOf(soldato.getPuntiVita()));
-
         int indiceArma = soldato.getArmaEquipaggiata()
                 .map(a -> soldato.getArmi().indexOf(a))
                 .orElse(-1);
         e.setAttribute("armaEquipaggiata", String.valueOf(indiceArma));
-
         Element armi = doc.createElement("armi");
         soldato.getArmi().forEach(a -> armi.appendChild(creaArma(doc, a)));
         e.appendChild(armi);
-
         Element consumabili = doc.createElement("consumabili");
         soldato.getConsumabili().forEach(c -> consumabili.appendChild(creaConsumabile(doc, c)));
         e.appendChild(consumabili);
@@ -97,4 +100,55 @@ public class XmlSalvataggioRepository implements SalvataggioRepository {
         return e;
     }
 
+    private Element creaEsplorate(Document doc, Partita partita) {
+        Element esplorate = doc.createElement("esplorate");
+        partita.getStanzeEsplorate().forEach(indice -> {
+            Element e = doc.createElement("stanza");
+            e.setAttribute("indice", String.valueOf(indice));
+            esplorate.appendChild(e);
+        });
+        return esplorate;
+    }
+
+    private Element creaOstaggio(Document doc, Ostaggio ostaggio) {
+        Element e = doc.createElement("ostaggio");
+        e.setAttribute("nome", ostaggio.getNome());
+        e.setAttribute("liberato", String.valueOf(ostaggio.isLiberato()));
+        return e;
+    }
+
+    private Element creaStanza(Document doc, Stanza stanza) {
+        Element e = doc.createElement("stanza");
+        e.setAttribute("nome", stanza.getNome());
+        e.setAttribute("descrizione", stanza.getDescrizione());
+        Element armi = doc.createElement("armi");
+        stanza.getArmi().forEach(a -> armi.appendChild(creaArma(doc, a)));
+        e.appendChild(armi);
+        Element consumabili = doc.createElement("consumabili");
+        stanza.getConsumabili().forEach(c -> consumabili.appendChild(creaConsumabile(doc, c)));
+        e.appendChild(consumabili);
+        Element ostaggi = doc.createElement("ostaggi");
+        stanza.getOstaggi().forEach(o -> ostaggi.appendChild(creaOstaggio(doc, o)));
+        e.appendChild(ostaggi);
+        stanza.getNemico().ifPresent(n -> e.appendChild(creaNemico(doc, n)));
+
+        return e;
+    }
+
+    private Element creaMappa(Document doc, Mappa mappa) {
+        Element e = doc.createElement("mappa");
+        mappa.getStanze().forEach(s -> e.appendChild(creaStanza(doc, s)));
+        return e;
+    }
+
+    private Element creaNemico(Document doc, Nemico nemico) {
+        Element e = doc.createElement("nemico");
+        e.setAttribute("nome", nemico.getNome());
+        e.setAttribute("punti", String.valueOf(nemico.getPuntiVita()));
+        e.setAttribute("puntiMax", String.valueOf(nemico.getPuntiVitaMax()));
+        e.setAttribute("stordito", String.valueOf(nemico.isStordito()));
+        e.setAttribute("turniAccecato", String.valueOf(nemico.getTurniAccecamento()));
+        e.appendChild(creaArma(doc, nemico.getArma()));
+        return e;
+    }
 }
