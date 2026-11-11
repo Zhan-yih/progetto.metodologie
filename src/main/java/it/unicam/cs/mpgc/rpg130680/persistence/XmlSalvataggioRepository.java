@@ -151,4 +151,75 @@ public class XmlSalvataggioRepository implements SalvataggioRepository {
         e.appendChild(creaArma(doc, nemico.getArma()));
         return e;
     }
+
+    private Arma leggiArma(LettoreXml l, Element e) {
+        return new Arma(
+                l.testo(e, "@nome"),
+                l.intero(e, "@danno"),
+                l.intero(e, "@precisione"),
+                l.intero(e, "@munizioni"));
+    }
+
+    private Consumabile leggiConsumabile(LettoreXml l, Element e) {
+        int quantita = e.hasAttribute("quantita") ? l.intero(e, "@quantita") : 0;
+        return ConvertitoreConsumabile.crea(l.testo(e, "@tipo"), quantita);
+    }
+
+    private Soldato leggiSoldato(LettoreXml l, Element e) {
+        Soldato soldato = new Soldato(l.testo(e, "@nome"));
+        soldato.subisciDanno(soldato.getPuntiVitaMax() - l.intero(e, "@punti"));
+        l.elementi(e, "armi/arma")
+                .forEach(a -> soldato.raccogliArma(leggiArma(l, a)));
+        int indiceArma = l.intero(e, "@armaEquipaggiata");
+        if (indiceArma >= 0) {
+            soldato.equipaggiaArma(soldato.getArmi().get(indiceArma));
+        }
+        l.elementi(e, "consumabili/consumabile")
+                .forEach(c -> soldato.raccogliConsumabile(leggiConsumabile(l, c)));
+        return soldato;
+    }
+
+    private Ostaggio leggiOstaggio(LettoreXml l, Element e) {
+        Ostaggio ostaggio = new Ostaggio(l.testo(e, "@nome"));
+        if (l.booleano(e, "@liberato")) {
+            ostaggio.libera();
+        }
+        return ostaggio;
+    }
+
+    private Nemico leggiNemico(LettoreXml l, Element e) {
+        int puntiMax = l.intero(e, "@puntiMax");
+        Arma arma = leggiArma(l, l.elementi(e, "arma").get(0));
+        Nemico nemico = new Nemico(l.testo(e, "@nome"), puntiMax, arma);
+        nemico.subisciDanno(puntiMax - l.intero(e, "@punti"));
+        if (l.booleano(e, "@stordito")) {
+            nemico.stordisci();
+        }
+        int turniAccecato = l.intero(e, "@turniAccecato");
+        if (turniAccecato > 0) {
+            nemico.accieca(turniAccecato);
+        }
+        return nemico;
+    }
+
+    private Stanza leggiStanza(LettoreXml l, Element e) {
+        Stanza stanza = new Stanza(l.testo(e, "@nome"), l.testo(e, "@descrizione"));
+        l.elementi(e, "armi/arma")
+                .forEach(a -> stanza.aggiungiArma(leggiArma(l, a)));
+        l.elementi(e, "consumabili/consumabile")
+                .forEach(c -> stanza.aggiungiConsumabile(leggiConsumabile(l, c)));
+        l.elementi(e, "ostaggi/ostaggio")
+                .forEach(o -> stanza.aggiungiOstaggio(leggiOstaggio(l, o)));
+        l.elementi(e, "nemico")
+                .forEach(n -> stanza.inserisciNemico(leggiNemico(l, n)));
+        return stanza;
+    }
+
+    private Mappa leggiMappa(LettoreXml l, Element radice) {
+        return new Mappa(l.elementi(radice, "mappa/stanza").stream()
+                .map(s -> leggiStanza(l, s))
+                .toList());
+    }
 }
+
+
