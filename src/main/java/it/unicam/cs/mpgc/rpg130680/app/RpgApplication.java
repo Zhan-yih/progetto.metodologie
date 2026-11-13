@@ -1,21 +1,27 @@
 package it.unicam.cs.mpgc.rpg130680.app;
 
+import it.unicam.cs.mpgc.rpg130680.ui.grafica.SfondoStanza;
 import it.unicam.cs.mpgc.rpg130680.ui.grafica.Sprite;
 import javafx.application.Application;
-import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class RpgApplication extends Application {
     @Override
     public void start(Stage stage) {
-        HBox fila = new HBox(40,
-                Sprite.pistola(), Sprite.fucileAssalto(), Sprite.cecchino(),
-                Sprite.granataFlash(), Sprite.granataFumogena(), Sprite.kitMedico());
-        fila.setPadding(new Insets(100, 40, 40, 80));
+        Pane scena = SfondoStanza.per("ingresso");
+        Group soldato = Sprite.soldato();
+        soldato.setTranslateX(100);
+        soldato.setTranslateY(270);
+        Group nemico = Sprite.nemico();
+        nemico.setTranslateX(480);
+        nemico.setTranslateY(270);
+        scena.getChildren().addAll(soldato, nemico);
+
         stage.setTitle("RPG");
-        stage.setScene(new Scene(fila, 700, 300));
+        stage.setScene(new Scene(scena));
         stage.show();
     }
 }
