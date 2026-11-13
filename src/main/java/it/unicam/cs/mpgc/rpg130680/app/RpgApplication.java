@@ -1,27 +1,28 @@
 package it.unicam.cs.mpgc.rpg130680.app;
 
-import it.unicam.cs.mpgc.rpg130680.ui.grafica.SfondoStanza;
-import it.unicam.cs.mpgc.rpg130680.ui.grafica.Sprite;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
+import it.unicam.cs.mpgc.rpg130680.persistence.XmlSalvataggioRepository;
+import it.unicam.cs.mpgc.rpg130680.service.Combattimento;
+import it.unicam.cs.mpgc.rpg130680.service.MappaIniziale;
+import it.unicam.cs.mpgc.rpg130680.service.Partita;
+import it.unicam.cs.mpgc.rpg130680.ui.PartitaController;
+import it.unicam.cs.mpgc.rpg130680.ui.SchermataGioco;
 import javafx.application.Application;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import java.nio.file.Path;
+import java.util.Random;
 
 public class RpgApplication extends Application {
     @Override
     public void start(Stage stage) {
-        Pane scena = SfondoStanza.per("ingresso");
-        Group soldato = Sprite.soldato();
-        soldato.setTranslateX(100);
-        soldato.setTranslateY(270);
-        Group nemico = Sprite.nemico();
-        nemico.setTranslateX(480);
-        nemico.setTranslateY(270);
-        scena.getChildren().addAll(soldato, nemico);
-
+        Random random = new Random();
+        Combattimento combattimento = new Combattimento(() -> random.nextInt(100));
+        Partita partita = new Partita(new Soldato("Soldato"), MappaIniziale.crea(), combattimento);
+        PartitaController controller = new PartitaController(partita,
+                new XmlSalvataggioRepository(Path.of("salvataggio.xml")), combattimento);
         stage.setTitle("RPG");
-        stage.setScene(new Scene(scena));
+        stage.setScene(new Scene(new SchermataGioco(controller), 900, 600));
         stage.show();
     }
 }
