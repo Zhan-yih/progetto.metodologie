@@ -19,6 +19,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class PartitaTest {
 
+    private Partita creaPartitaArmata(Nemico nemico) {
+        Soldato soldato = new Soldato("io");
+        Arma pistola = new Arma("Pistola", 15, 75, 12);
+        soldato.raccogliArma(pistola);
+        soldato.equipaggiaArma(pistola);
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        if (nemico != null) {
+            stanza.inserisciNemico(nemico);
+        }
+        return new Partita(soldato, new Mappa(List.of(stanza)), new Combattimento(() -> 0));
+    }
+
     @Test
     void partitaNuovaInCorso(){
         Soldato soldato= new Soldato("io");
@@ -345,6 +357,51 @@ public class PartitaTest {
         assertThrows(IllegalArgumentException.class, () ->
                 new Partita(new Soldato("Rambo"), creaMappa(),
                         new Combattimento(() -> 0), Set.of(0), 0));
+    }
+
+    @Test
+    void sparaInfliggeDannoENemicoResta() {
+        Partita partita = creaPartitaArmata(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        partita.entraInStanza(0);
+        assertEquals(15, partita.spara());
+        assertTrue(partita.getStanzaCorrente().orElseThrow().getNemico().isPresent());
+    }
+
+    @Test
+    void sparaUccideEPoiRimuoveIlNemico() {
+        Partita partita = creaPartitaArmata(new Nemico("avversario", 10, new Arma("Fucile", 10, 60, 15)));
+        partita.entraInStanza(0);
+        partita.spara();
+        assertTrue(partita.getStanzaCorrente().orElseThrow().getNemico().isEmpty());
+    }
+
+    @Test
+    void sparaSenzaStanzaCorrenteLanciaEccezione() {
+        Partita partita = creaPartitaArmata(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        assertThrows(IllegalStateException.class, () -> partita.spara());
+    }
+
+    @Test
+    void sparaSenzaNemicoLanciaEccezione() {
+        Partita partita = creaPartitaArmata(null);
+        partita.entraInStanza(0);
+        assertThrows(IllegalStateException.class, () -> partita.spara());
+    }
+
+    @Test
+    void turnoNemicoColpisceIlSoldato() {
+        Partita partita = creaPartitaArmata(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        partita.entraInStanza(0);
+        assertEquals(10, partita.turnoNemico());
+        assertEquals(90, partita.getSoldato().getPuntiVita());
+    }
+
+    @Test
+    void turnoNemicoAPartitaFinitaLanciaEccezione() {
+        Partita partita = creaPartitaArmata(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        partita.entraInStanza(0);
+        partita.getSoldato().subisciDanno(100);
+        assertThrows(IllegalStateException.class, () -> partita.turnoNemico());
     }
 }
 

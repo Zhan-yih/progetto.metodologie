@@ -114,6 +114,34 @@ public class Partita {
         soldato.usaConsumabile(c, nemico.orElse(null));
     }
 
+    public int spara(){
+        verificaInCorso();
+        Nemico nemico= nemicoCorrente();
+        int danno= combattimento.attaccaNemico(soldato, nemico);
+        if(!nemico.isVivo()){
+            getStanzaCorrente().orElseThrow().rimuoviNemico();
+        }
+        return danno;
+    }
+
+    public int turnoNemico(){
+        verificaInCorso();
+        return combattimento.turnoNemico(nemicoCorrente(), soldato);
+    }
+
+    private Nemico nemicoCorrente(){
+        return getStanzaCorrente()
+                .orElseThrow(()-> new IllegalStateException("nessuna stanza corrente"))
+                .getNemico()
+                .orElseThrow(()-> new IllegalStateException("non ci sono nemici"));
+    }
+
+    private void verificaInCorso(){
+        if(getStato() != StatoPartita.IN_CORSO){
+            throw new IllegalStateException("partita finita");
+        }
+    }
+
     public Soldato getSoldato(){
         return soldato;
     }
