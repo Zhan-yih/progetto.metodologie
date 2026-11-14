@@ -44,18 +44,23 @@ public class Combattimento {
          return colpisci(arma, soldato, precisione);
     }
 
+    public int turnoNemico(Nemico nemico, Soldato soldato){
+        if(nemico.isStordito()){
+            nemico.riprendi();
+            nemico.riduciAccecamento();
+            return 0;
+        }
+        int dannoSubito= attaccaSoldato(nemico, soldato);
+        nemico.riduciAccecamento();
+        return dannoSubito;
+    }
+
     public EsitoTurno giocaTurno(Soldato soldato, Nemico nemico){
         int dannoInflitto= attaccaNemico(soldato, nemico);
         if(!nemico.isVivo()){
             return new EsitoTurno(dannoInflitto,0,true,false);
         }
-        if(nemico.isStordito()){
-            nemico.riprendi();
-            nemico.riduciAccecamento();
-            return new EsitoTurno(dannoInflitto,0,false,false);
-        }
-        int dannoSubito= attaccaSoldato(nemico, soldato);
-        nemico.riduciAccecamento();
+        int dannoSubito= turnoNemico(nemico, soldato);
         return new EsitoTurno(dannoInflitto,dannoSubito,!nemico.isVivo(),!soldato.isVivo());
     }
 }

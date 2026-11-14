@@ -229,4 +229,50 @@ public class CombattimentoTest {
 
     }
 
+    @Test
+    void turnoNemicoColpisceIlSoldato() {
+        Soldato soldato = new Soldato("io");
+        Nemico nemico = new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15));
+        int danno = new Combattimento(() -> 0).turnoNemico(nemico, soldato);
+        assertEquals(10, danno);
+        assertEquals(90, soldato.getPuntiVita());
+    }
+
+    @Test
+    void turnoNemicoPuoMancareIlSoldato() {
+        Soldato soldato = new Soldato("io");
+        Nemico nemico = new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15));
+        int danno = new Combattimento(() -> 99).turnoNemico(nemico, soldato);
+        assertEquals(0, danno);
+        assertEquals(100, soldato.getPuntiVita());
+    }
+
+    @Test
+    void turnoNemicoStorditoSaltaIlColpo() {
+        Soldato soldato = new Soldato("io");
+        Nemico nemico = new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15));
+        nemico.stordisci();
+        int danno = new Combattimento(() -> 0).turnoNemico(nemico, soldato);
+        assertEquals(0, danno);
+        assertEquals(100, soldato.getPuntiVita());
+        assertFalse(nemico.isStordito());
+    }
+
+    @Test
+    void turnoNemicoRiduceLAccecamento() {
+        Soldato soldato = new Soldato("io");
+        Nemico nemico = new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15));
+        nemico.accieca(2);
+        new Combattimento(() -> 0).turnoNemico(nemico, soldato);
+        assertEquals(1, nemico.getTurniAccecamento());
+    }
+
+    @Test
+    void turnoNemicoAccecatoHaMenoPrecisione() {
+        Soldato soldato = new Soldato("io");
+        Nemico nemico = new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15));
+        nemico.accieca(1);
+        int danno = new Combattimento(() -> 40).turnoNemico(nemico, soldato);
+        assertEquals(0, danno);
+    }
 }
