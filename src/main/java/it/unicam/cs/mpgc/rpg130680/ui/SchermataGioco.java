@@ -39,7 +39,8 @@ public class SchermataGioco extends BorderPane {
         this.controller = controller;
         this.scenaAzione= new ScenaAzione(
                 () -> esegui(controller::spara),
-                () -> esegui(controller::sparaAlVuoto)
+                () -> esegui(controller::sparaAlVuoto),
+                () -> esegui(controller::turnoNemico)
         );
         registro.setEditable(false);
         registro.setPrefRowCount(5);

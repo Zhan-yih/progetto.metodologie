@@ -23,34 +23,40 @@ import java.util.*;
 import java.util.function.BooleanSupplier;
 
 public class ScenaAzione {
-    private static final double VELOCITA = 200;
-    private static final double VELOCITA_PROIETTILE = 700;
-    private static final double CADENZA = 0.3;
-    private static final double LUNGHEZZA_MAX = 800;
-    private static final double INIZIO_X = 100;
-    private static final double INIZIO_Y = 270;
-    private static final double X_MIN = 30;
-    private static final double X_MAX = 570;
-    private static final double Y_MIN = 240;
-    private static final double Y_MAX = 290;
-    private static final double CANNA_X = 20;
-    private static final double CANNA_Y = -42;
+    private static final double VELOCITA= 200;
+    private static final double VELOCITA_PROIETTILE= 700;
+    private static final double CADENZA= 0.3;
+    private static final double LUNGHEZZA_MAX= 800;
+    private static final double INIZIO_X= 100;
+    private static final double INIZIO_Y= 270;
+    private static final double X_MIN= 30;
+    private static final double X_MAX= 570;
+    private static final double Y_MIN= 240;
+    private static final double Y_MAX= 290;
+    private static final double CANNA_X= 20;
+    private static final double CANNA_Y= -42;
+    private static final double VELOCITA_PROIETTILE_NEMICO= 450;
+    private static final double CADENZA_NEMICO= 1.8;
+    private static final double ATTESA_INIZIALE= 1.5;
+    private static final double CANNA_NEMICO_X= -20;
     private static final Set<KeyCode> TASTI = Set.of(
             KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D,
             KeyCode.UP, KeyCode.DOWN, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.SPACE);
-
     private final BooleanSupplier suColpoANemico;
     private final BooleanSupplier suColpoAVuoto;
-    private final StackPane contenitore = new StackPane();
-    private final Pane stratoProiettili = new Pane();
-    private final List<Proiettile> proiettili = new ArrayList<>();
-    private final Set<KeyCode> tastiPremuti = new HashSet<>();
-    private final Group soldato = Sprite.soldato();
+    private final StackPane contenitore= new StackPane();
+    private final Pane stratoProiettili= new Pane();
+    private final List<Proiettile> proiettili= new ArrayList<>();
+    private final Set<KeyCode> tastiPremuti= new HashSet<>();
+    private final Group soldato= Sprite.soldato();
     private Group nemicoSprite;
     private Stanza stanzaMostrata;
     private double miraX = 500;
     private double miraY = 230;
     private double ricarica;
+    private double ricaricaNemico;
+    private boolean bloccata;
+    private final BooleanSupplier suColpoDelNemico;
 
     private final AnimationTimer timer = new AnimationTimer() {
         private long ultimo;
@@ -58,9 +64,10 @@ public class ScenaAzione {
         @Override
         public void handle(long adesso) {
             if (ultimo != 0) {
-                double secondi = (adesso - ultimo) / 1_000_000_000.0;
+                double secondi= (adesso - ultimo) / 1_000_000_000.0;
                 ricarica = Math.max(0, ricarica - secondi);
                 muovi(secondi);
+                aggiornaNemico(secondi);
                 if (tastiPremuti.contains(KeyCode.SPACE)) {
                     provaASparare();
                 }
@@ -70,12 +77,13 @@ public class ScenaAzione {
         }
     };
 
-    public ScenaAzione(BooleanSupplier suColpoANemico, BooleanSupplier suColpoAVuoto) {
+    public ScenaAzione(BooleanSupplier suColpoANemico, BooleanSupplier suColpoAVuoto, BooleanSupplier suColpoDelNemico) {
         if (suColpoANemico == null || suColpoAVuoto == null) {
             throw new IllegalArgumentException("azioni di sparo nulle");
         }
-        this.suColpoANemico = suColpoANemico;
-        this.suColpoAVuoto = suColpoAVuoto;
+        this.suColpoANemico= suColpoANemico;
+        this.suColpoAVuoto= suColpoAVuoto;
+        this.suColpoDelNemico= suColpoDelNemico;
         soldato.setTranslateX(INIZIO_X);
         soldato.setTranslateY(INIZIO_Y);
         stratoProiettili.setPrefSize(SfondoStanza.LARGHEZZA, SfondoStanza.ALTEZZA);
@@ -112,6 +120,8 @@ public class ScenaAzione {
             soldato.setTranslateY(INIZIO_Y);
             stratoProiettili.getChildren().clear();
             proiettili.clear();
+            ricaricaNemico= ATTESA_INIZIALE;
+            bloccata= false;
         }
         if (nuova == null) {
             nemicoSprite = null;
@@ -189,7 +199,8 @@ public class ScenaAzione {
             return;
         }
         ricarica = CADENZA;
-        lancia(x0, y0, dx, dy, sullaLineaDiTiro ? distanza : LUNGHEZZA_MAX);
+        lancia(x0, y0, dx, dy, sullaLineaDiTiro ? distanza : LUNGHEZZA_MAX,
+                VELOCITA_PROIETTILE, Color.GOLD, false);
     }
 
     private double distanzaDalNemico(double x0, double y0, double dx, double dy) {
@@ -205,23 +216,55 @@ public class ScenaAzione {
         return -1;
     }
 
-    private void lancia(double x0, double y0, double dx, double dy, double distanza) {
-        Circle forma = new Circle(x0, y0, 3, Color.GOLD);
+    private void lancia(double x0, double y0, double dx, double dy, double distanza,
+                        double velocita, Color colore, boolean ostile) {
+        Circle forma = new Circle(x0, y0, 3, colore);
         stratoProiettili.getChildren().add(forma);
-        proiettili.add(new Proiettile(forma, dx * VELOCITA_PROIETTILE,
-                dy * VELOCITA_PROIETTILE, distanza));
+        proiettili.add(new Proiettile(forma, dx * velocita, dy * velocita, distanza, ostile));
+    }
+
+    private void aggiornaNemico(double secondi) {
+        if (nemicoSprite == null || bloccata) {
+            return;
+        }
+        ricaricaNemico -= secondi;
+        if (ricaricaNemico > 0) {
+            return;
+        }
+        ricaricaNemico = CADENZA_NEMICO;
+        double x0 = nemicoSprite.getTranslateX() + CANNA_NEMICO_X;
+        double y0 = nemicoSprite.getTranslateY() + CANNA_Y;
+        Bounds bersaglio = soldato.getBoundsInParent();
+        double lunghezza = Math.hypot(bersaglio.getCenterX() - x0, bersaglio.getCenterY() - y0);
+        if (lunghezza == 0) {
+            return;
+        }
+        lancia(x0, y0, (bersaglio.getCenterX() - x0) / lunghezza,
+                (bersaglio.getCenterY() - y0) / lunghezza,
+                LUNGHEZZA_MAX, VELOCITA_PROIETTILE_NEMICO, Color.RED, true);
     }
 
     private void aggiornaProiettili(double secondi) {
+        int colpiSulSoldato = 0;
         Iterator<Proiettile> iteratore = proiettili.iterator();
         while (iteratore.hasNext()) {
             Proiettile p = iteratore.next();
             p.forma.setCenterX(p.forma.getCenterX() + p.vx * secondi);
             p.forma.setCenterY(p.forma.getCenterY() + p.vy * secondi);
-            p.restante -= VELOCITA_PROIETTILE * secondi;
-            if (p.restante <= 0 || fuori(p.forma)) {
+            p.restante -= Math.hypot(p.vx, p.vy) * secondi;
+            boolean colpito = p.ostile && soldato.getBoundsInParent()
+                    .contains(p.forma.getCenterX(), p.forma.getCenterY());
+            if (colpito) {
+                colpiSulSoldato++;
+            }
+            if (colpito || p.restante <= 0 || fuori(p.forma)) {
                 stratoProiettili.getChildren().remove(p.forma);
                 iteratore.remove();
+            }
+        }
+        for (int i = 0; i < colpiSulSoldato; i++) {
+            if (!suColpoDelNemico.getAsBoolean()) {
+                bloccata = true;
             }
         }
     }
@@ -267,17 +310,20 @@ public class ScenaAzione {
         scena.getChildren().add(nodo);
     }
 
+
     private static class Proiettile {
         private final Circle forma;
         private final double vx;
         private final double vy;
+        private final boolean ostile;
         private double restante;
 
-        private Proiettile(Circle forma, double vx, double vy, double restante) {
+        private Proiettile(Circle forma, double vx, double vy, double restante, boolean ostile) {
             this.forma = forma;
             this.vx = vx;
             this.vy = vy;
             this.restante = restante;
+            this.ostile = ostile;
         }
     }
 }
