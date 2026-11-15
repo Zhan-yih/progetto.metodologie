@@ -49,9 +49,34 @@ public class PartitaController {
         Stanza stanza= partita.getStanzaCorrente()
                 .orElseThrow(()-> new IllegalStateException("nessuna stanza corrente") );
         int oggetti= stanza.getArmi().size() + stanza.getConsumabili().size();
-        int ostaggi= stanza.getOstaggi().size();
+        int ostaggi= stanza.ostaggiDaLiberare().size();
         partita.completaStanza();
         return "Stanza completata raccolti " + oggetti + " oggetti, liberati " + ostaggi + " ostaggi";
+    }
+
+    public String spara(){
+        int danno= partita.spara();
+        StringBuilder messaggio= new StringBuilder(danno > 0
+                ? "Colpito! Il nemico perde " + danno + " PV."
+                : "Colpo mancato.");
+        boolean nemicoPresente= partita.getStanzaCorrente()
+                .flatMap(Stanza::getNemico)
+                .isPresent();
+        if(!nemicoPresente){
+            messaggio.append(" Nemico sconfitto!");
+        }
+        return messaggio.toString();
+    }
+
+    public String turnoNemico(){
+        int danno= partita.turnoNemico();
+        StringBuilder messaggio= new StringBuilder(danno > 0
+                ? "Il nemico ti colpisce: -" + danno + " PV."
+                : "Il nemico ti manca.");
+        if(!partita.getSoldato().isVivo()){
+            messaggio.append(" Sei stato sconfitto.");
+        }
+        return messaggio.toString();
     }
 
     public String usa(Consumabile consumabile){

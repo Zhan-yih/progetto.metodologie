@@ -108,4 +108,30 @@ public class PartitaControllerTest {
         assertEquals(-1, controller.getPartita().getIndiceStanzaCorrente());
     }
 
+    @Test
+    void sparaRiportaIlDanno() {
+        PartitaController controller =
+                creaController(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        controller.entra(0);
+        String messaggio = controller.spara();
+        assertTrue(messaggio.contains("Colpito"));
+        assertTrue(messaggio.contains("15"));
+    }
+
+    @Test
+    void sparaSegnalaNemicoSconfitto() {
+        PartitaController controller =
+                creaController(new Nemico("avversario", 10, new Arma("Fucile", 10, 60, 15)));
+        controller.entra(0);
+        assertTrue(controller.spara().contains("Nemico sconfitto!"));
+    }
+
+    @Test
+    void turnoNemicoRiportaIlDanno() {
+        PartitaController controller =
+                creaController(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        controller.entra(0);
+        assertTrue(controller.turnoNemico().contains("-10"));
+    }
+
 }
