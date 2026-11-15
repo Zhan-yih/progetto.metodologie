@@ -44,6 +44,15 @@ public class Partita {
 
     }
 
+    private Arma armaPronta(){
+        Arma arma= soldato.getArmaEquipaggiata()
+                .orElseThrow(() -> new IllegalStateException("nessuna arma equipaggiata"));
+        if(!arma.haMunizioni()){
+            throw new IllegalStateException("Munizioni esaurite");
+        }
+        return arma;
+    }
+
     public StatoPartita getStato(){
         if(!soldato.isVivo()){
             return StatoPartita.SCONFITTA;
@@ -118,6 +127,7 @@ public class Partita {
     public int spara(){
         verificaInCorso();
         Nemico nemico= nemicoCorrente();
+        armaPronta();
         int danno= combattimento.attaccaNemico(soldato, nemico);
         if(!nemico.isVivo()){
             getStanzaCorrente().orElseThrow().rimuoviNemico();
@@ -132,11 +142,7 @@ public class Partita {
 
     public void sparaAlVuoto(){
         verificaInCorso();
-        Arma arma= soldato.getArmaEquipaggiata()
-                .orElseThrow(()-> new IllegalStateException("nessuna equipaggiata"));
-        if(arma.haMunizioni()){
-            arma.consumaColpo();
-        }
+        armaPronta().consumaColpo();
     }
 
     private Nemico nemicoCorrente(){

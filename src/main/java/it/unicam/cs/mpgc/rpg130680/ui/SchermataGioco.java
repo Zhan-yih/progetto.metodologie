@@ -30,13 +30,17 @@ public class SchermataGioco extends BorderPane {
     private final Button pulsanteCombatti = new Button("Combatti");
     private final Button pulsanteCompleta = new Button("Completa stanza");
     private final VBox inventario = new VBox(6);
-    private final ScenaAzione scenaAzione = new ScenaAzione();
+    private final ScenaAzione scenaAzione;
 
     public SchermataGioco(PartitaController controller) {
         if (controller == null) {
             throw new IllegalArgumentException("controller nullo");
         }
         this.controller = controller;
+        this.scenaAzione= new ScenaAzione(
+                () -> esegui(controller::spara),
+                () -> esegui(controller::sparaAlVuoto)
+        );
         registro.setEditable(false);
         registro.setPrefRowCount(5);
         setTop(titolo);
@@ -83,13 +87,16 @@ public class SchermataGioco extends BorderPane {
         return pannello;
     }
 
-    private void esegui(Supplier<String> azione) {
-        try {
+    private boolean esegui(Supplier<String> azione) {
+        boolean riuscita= true;
+        try{
             registro.appendText(azione.get() + "\n");
-        } catch (IllegalStateException | IllegalArgumentException | SalvataggioException e) {
+        } catch(IllegalStateException | IllegalArgumentException | SalvataggioException e){
             registro.appendText("Azione non possibile: " + e.getMessage() + "\n");
+            riuscita = false;
         }
         aggiorna();
+        return riuscita;
     }
 
     private void aggiorna() {

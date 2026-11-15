@@ -31,6 +31,13 @@ public class PartitaTest {
         return new Partita(soldato, new Mappa(List.of(stanza)), new Combattimento(() -> 0));
     }
 
+    private void svuotaCaricatore(Partita partita) {
+        Arma arma = partita.getSoldato().getArmaEquipaggiata().orElseThrow();
+        while (arma.haMunizioni()) {
+            arma.consumaColpo();
+        }
+    }
+
     @Test
     void partitaNuovaInCorso(){
         Soldato soldato= new Soldato("io");
@@ -425,6 +432,22 @@ public class PartitaTest {
         Partita partita = creaPartitaArmata(null);
         partita.getSoldato().subisciDanno(100);
         assertThrows(IllegalStateException.class, () -> partita.sparaAlVuoto());
+    }
+
+    @Test
+    void sparaAlVuotoSenzaMunizioniLanciaEccezione() {
+        Partita partita = creaPartitaArmata(null);
+        partita.entraInStanza(0);
+        svuotaCaricatore(partita);
+        assertThrows(IllegalStateException.class, () -> partita.sparaAlVuoto());
+    }
+
+    @Test
+    void sparaSenzaMunizioniLanciaEccezione() {
+        Partita partita = creaPartitaArmata(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        partita.entraInStanza(0);
+        svuotaCaricatore(partita);
+        assertThrows(IllegalStateException.class, () -> partita.spara());
     }
 }
 
