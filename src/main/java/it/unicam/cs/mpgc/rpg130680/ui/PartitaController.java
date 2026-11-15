@@ -89,6 +89,11 @@ public class PartitaController {
         return "Impugni " + arma.getNome();
     }
 
+    public String sparaAlVuoto(){
+        partita.sparaAlVuoto();
+        return "Colpo a vuoto";
+    }
+
     public void salva(){
         repository.salva(partita);
     }

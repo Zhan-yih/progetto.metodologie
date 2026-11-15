@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.rpg130680.service;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
+import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 import it.unicam.cs.mpgc.rpg130680.model.map.Mappa;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
@@ -127,6 +128,15 @@ public class Partita {
     public int turnoNemico(){
         verificaInCorso();
         return combattimento.turnoNemico(nemicoCorrente(), soldato);
+    }
+
+    public void sparaAlVuoto(){
+        verificaInCorso();
+        Arma arma= soldato.getArmaEquipaggiata()
+                .orElseThrow(()-> new IllegalStateException("nessuna equipaggiata"));
+        if(arma.haMunizioni()){
+            arma.consumaColpo();
+        }
     }
 
     private Nemico nemicoCorrente(){

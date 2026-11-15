@@ -134,4 +134,11 @@ public class PartitaControllerTest {
         assertTrue(controller.turnoNemico().contains("-10"));
     }
 
+    @Test
+    void sparaAlVuotoRestituisceIlMessaggio() {
+        PartitaController controller =
+                creaController(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        controller.entra(0);
+        assertTrue(controller.sparaAlVuoto().contains("vuoto"));
+    }
 }

@@ -403,5 +403,28 @@ public class PartitaTest {
         partita.getSoldato().subisciDanno(100);
         assertThrows(IllegalStateException.class, () -> partita.turnoNemico());
     }
+
+    @Test
+    void sparaAlVuotoConsumaUnaMunizione() {
+        Partita partita = creaPartitaArmata(null);
+        partita.entraInStanza(0);
+        partita.sparaAlVuoto();
+        assertEquals(11, partita.getSoldato().getArmaEquipaggiata().orElseThrow().getMunizioni());
+    }
+
+    @Test
+    void sparaAlVuotoSenzaArmaLanciaEccezione() {
+        Partita partita = new Partita(new Soldato("io"),
+                new Mappa(List.of(new Stanza("ingresso", "Una porta blindata"))),
+                new Combattimento(() -> 0));
+        assertThrows(IllegalStateException.class, () -> partita.sparaAlVuoto());
+    }
+
+    @Test
+    void sparaAlVuotoAPartitaFinitaLanciaEccezione() {
+        Partita partita = creaPartitaArmata(null);
+        partita.getSoldato().subisciDanno(100);
+        assertThrows(IllegalStateException.class, () -> partita.sparaAlVuoto());
+    }
 }
 
