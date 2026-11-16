@@ -94,6 +94,18 @@ public class Stanza {
                 .toList();
     }
 
+    public void rimuoviArma(Arma arma) {
+        if (arma == null || !armi.remove(arma)) {
+            throw new IllegalArgumentException("arma non presente nella stanza");
+        }
+    }
+
+    public void rimuoviConsumabile(Consumabile consumabile) {
+        if (consumabile == null || !consumabili.remove(consumabile)) {
+            throw new IllegalArgumentException("consumabile non presente nella stanza");
+        }
+    }
+
     public List<Arma> getArmi() {
         return List.copyOf(armi);
     }

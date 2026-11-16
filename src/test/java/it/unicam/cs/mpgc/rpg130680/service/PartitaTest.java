@@ -449,5 +449,102 @@ public class PartitaTest {
         svuotaCaricatore(partita);
         assertThrows(IllegalStateException.class, () -> partita.spara());
     }
+
+    private Partita creaPartitaConDueStanze(Stanza prima) {
+        return new Partita(new Soldato("io"),
+                new Mappa(List.of(prima, new Stanza("armeria", "Armi"))),
+                new Combattimento(() -> 0));
+    }
+
+    @Test
+    void raccogliArmaLaSpostaDallaStanzaAlSoldato() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        Arma arma = new Arma("Pistola", 15, 75, 12);
+        stanza.aggiungiArma(arma);
+        Partita partita = creaPartitaConDueStanze(stanza);
+        partita.entraInStanza(0);
+        partita.raccogliArma(arma);
+        assertTrue(partita.getSoldato().getArmi().contains(arma));
+        assertFalse(stanza.getArmi().contains(arma));
+    }
+
+    @Test
+    void raccogliArmaNonPresenteLanciaEccezione() {
+        Partita partita = creaPartitaConDueStanze(new Stanza("ingresso", "Una porta blindata"));
+        partita.entraInStanza(0);
+        assertThrows(IllegalArgumentException.class,
+                () -> partita.raccogliArma(new Arma("Pistola", 15, 75, 12)));
+    }
+
+    @Test
+    void raccogliConsumabileLoSpostaDallaStanzaAlSoldato() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        Consumabile kit = new KitMedico(30);
+        stanza.aggiungiConsumabile(kit);
+        Partita partita = creaPartitaConDueStanze(stanza);
+        partita.entraInStanza(0);
+        partita.raccogliConsumabile(kit);
+        assertTrue(partita.getSoldato().getConsumabili().contains(kit));
+        assertFalse(stanza.getConsumabili().contains(kit));
+    }
+
+    @Test
+    void liberaOstaggioLoLibera() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        Ostaggio ostaggio = new Ostaggio("prova");
+        stanza.aggiungiOstaggio(ostaggio);
+        Partita partita = creaPartitaConDueStanze(stanza);
+        partita.entraInStanza(0);
+        partita.liberaOstaggio(ostaggio);
+        assertTrue(ostaggio.isLiberato());
+    }
+
+    @Test
+    void liberaOstaggioConNemicoPresenteLanciaEccezione() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        Ostaggio ostaggio = new Ostaggio("prova");
+        stanza.aggiungiOstaggio(ostaggio);
+        stanza.inserisciNemico(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        Partita partita = creaPartitaConDueStanze(stanza);
+        partita.entraInStanza(0);
+        assertThrows(IllegalStateException.class, () -> partita.liberaOstaggio(ostaggio));
+    }
+
+    @Test
+    void attraversaPortaPassaAllaStanzaSuccessiva() {
+        Partita partita = creaPartitaConDueStanze(new Stanza("ingresso", "Una porta blindata"));
+        partita.entraInStanza(0);
+        partita.attraversaPorta();
+        assertEquals(1, partita.getIndiceStanzaCorrente());
+        assertEquals(Set.of(0), partita.getStanzeEsplorate());
+    }
+
+    @Test
+    void attraversaPortaConNemicoLanciaEccezione() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        stanza.inserisciNemico(new Nemico("avversario", 100, new Arma("Fucile", 10, 60, 15)));
+        Partita partita = creaPartitaConDueStanze(stanza);
+        partita.entraInStanza(0);
+        assertThrows(IllegalStateException.class, () -> partita.attraversaPorta());
+    }
+
+    @Test
+    void attraversaPortaConOstaggioDaLiberareLanciaEccezione() {
+        Stanza stanza = new Stanza("ingresso", "Una porta blindata");
+        stanza.aggiungiOstaggio(new Ostaggio("prova"));
+        Partita partita = creaPartitaConDueStanze(stanza);
+        partita.entraInStanza(0);
+        assertThrows(IllegalStateException.class, () -> partita.attraversaPorta());
+    }
+
+    @Test
+    void attraversaPortaDellUltimaStanzaPortaAllaVittoria() {
+        Partita partita = new Partita(new Soldato("io"),
+                new Mappa(List.of(new Stanza("ingresso", "Una porta blindata"))),
+                new Combattimento(() -> 0));
+        partita.entraInStanza(0);
+        partita.attraversaPorta();
+        assertEquals(VITTORIA, partita.getStato());
+    }
 }
 

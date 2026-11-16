@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg130680.ui;
 
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
@@ -92,6 +93,26 @@ public class PartitaController {
     public String sparaAlVuoto(){
         partita.sparaAlVuoto();
         return "Colpo a vuoto";
+    }
+
+    public String raccogliArma(Arma arma) {
+        partita.raccogliArma(arma);
+        return "Raccolto: " + arma.getNome() + ".";
+    }
+
+    public String raccogliConsumabile(Consumabile consumabile) {
+        partita.raccogliConsumabile(consumabile);
+        return "Raccolto: " + consumabile.getNome() + ".";
+    }
+
+    public String liberaOstaggio(Ostaggio ostaggio) {
+        partita.liberaOstaggio(ostaggio);
+        return "Ostaggio liberato.";
+    }
+
+    public String attraversaPorta() {
+        partita.attraversaPorta();
+        return "Porta attraversata.";
     }
 
     public void salva(){

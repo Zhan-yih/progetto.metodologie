@@ -158,6 +158,49 @@ public class Partita {
         }
     }
 
+    public void raccogliArma(Arma arma) {
+        stanzaPerAzione().rimuoviArma(arma);
+        soldato.raccogliArma(arma);
+    }
+
+    public void raccogliConsumabile(Consumabile consumabile) {
+        stanzaPerAzione().rimuoviConsumabile(consumabile);
+        soldato.raccogliConsumabile(consumabile);
+    }
+
+    public void liberaOstaggio(Ostaggio ostaggio) {
+        Stanza stanza = stanzaPerAzione();
+        if (stanza.getNemico().isPresent()) {
+            throw new IllegalStateException("nemico ancora presente");
+        }
+        if (ostaggio == null || !stanza.ostaggiDaLiberare().contains(ostaggio)) {
+            throw new IllegalArgumentException("ostaggio non presente nella stanza");
+        }
+        ostaggio.libera();
+    }
+
+    public void attraversaPorta() {
+        Stanza stanza = stanzaPerAzione();
+        if (stanza.getNemico().isPresent()) {
+            throw new IllegalStateException("nemico ancora presente");
+        }
+        if (!stanza.ostaggiDaLiberare().isEmpty()) {
+            throw new IllegalStateException("ci sono ostaggi da liberare");
+        }
+        int prossima = stanzaCorrente + 1;
+        stanzeEsplorate.add(stanzaCorrente);
+        stanzaCorrente = -1;
+        if (getStato() == StatoPartita.IN_CORSO && prossima < mappa.numeroStanze()) {
+            entraInStanza(prossima);
+        }
+    }
+
+    private Stanza stanzaPerAzione() {
+        verificaInCorso();
+        return getStanzaCorrente()
+                .orElseThrow(() -> new IllegalStateException("nessuna stanza corrente"));
+    }
+
     public Soldato getSoldato(){
         return soldato;
     }
