@@ -38,11 +38,32 @@ public class SchermataGioco extends BorderPane {
             throw new IllegalArgumentException("controller nullo");
         }
         this.controller = controller;
-        this.scenaAzione= new ScenaAzione(
-                () -> esegui(controller::spara),
-                () -> esegui(controller::sparaAlVuoto),
-                () -> esegui(controller::turnoNemico)
-        );
+        this.scenaAzione = new ScenaAzione(new AzioniScena() {
+            @Override
+            public boolean spara() {
+                return esegui(controller::spara);
+            }
+
+            @Override
+            public boolean sparaAlVuoto() {
+                return esegui(controller::sparaAlVuoto);
+            }
+
+            @Override
+            public boolean colpoDelNemico() {
+                return esegui(controller::turnoNemico);
+            }
+
+            @Override
+            public boolean raccogliArma(Arma arma) {
+                return esegui(() -> controller.raccogliArma(arma));
+            }
+
+            @Override
+            public boolean raccogliConsumabile(Consumabile consumabile) {
+                return esegui(() -> controller.raccogliConsumabile(consumabile));
+            }
+        });
         registro.setEditable(false);
         registro.setPrefRowCount(5);
         setTop(titolo);

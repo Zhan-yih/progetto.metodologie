@@ -21,8 +21,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
 import java.util.*;
 import java.util.function.BooleanSupplier;
+
 
 public class ScenaAzione {
     private static final double VELOCITA= 200;
@@ -42,10 +47,8 @@ public class ScenaAzione {
     private static final double ATTESA_INIZIALE= 1.5;
     private static final double CANNA_NEMICO_X= -20;
     private static final Set<KeyCode> TASTI = Set.of(
-            KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D,
+            KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.E,
             KeyCode.UP, KeyCode.DOWN, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.SPACE);
-    private final BooleanSupplier suColpoANemico;
-    private final BooleanSupplier suColpoAVuoto;
     private final StackPane contenitore= new StackPane();
     private final Pane stratoProiettili= new Pane();
     private final List<Proiettile> proiettili= new ArrayList<>();
@@ -58,10 +61,14 @@ public class ScenaAzione {
     private double ricarica;
     private double ricaricaNemico;
     private boolean bloccata;
-    private final BooleanSupplier suColpoDelNemico;
     private static final double ALTEZZA_BARRA= 95;
     private Soldato datiSoldato;
     private BarraVita barraSoldato;
+    private static final double RAGGIO_INTERAZIONE = 70;
+    private final AzioniScena azioni;
+    private final List<Raccoglibile> raccoglibili = new ArrayList<>();
+    private Raccoglibile vicino;
+    private Text suggerimento;
 
     private final AnimationTimer timer = new AnimationTimer() {
         private long ultimo;
@@ -73,6 +80,7 @@ public class ScenaAzione {
                 ricarica = Math.max(0, ricarica - secondi);
                 muovi(secondi);
                 seguiSoldato();
+                aggiornaSuggerimento();
                 aggiornaNemico(secondi);
                 if (tastiPremuti.contains(KeyCode.SPACE)) {
                     provaASparare();
@@ -83,13 +91,11 @@ public class ScenaAzione {
         }
     };
 
-    public ScenaAzione(BooleanSupplier suColpoANemico, BooleanSupplier suColpoAVuoto, BooleanSupplier suColpoDelNemico) {
-        if (suColpoANemico == null || suColpoAVuoto == null || suColpoDelNemico == null) {
-            throw new IllegalArgumentException("azioni di sparo nulle");
+    public ScenaAzione(AzioniScena azioni) {
+        if (azioni == null) {
+            throw new IllegalArgumentException("azioni nulle");
         }
-        this.suColpoANemico= suColpoANemico;
-        this.suColpoAVuoto= suColpoAVuoto;
-        this.suColpoDelNemico= suColpoDelNemico;
+        this.azioni = azioni;
         soldato.setTranslateX(INIZIO_X);
         soldato.setTranslateY(INIZIO_Y);
         stratoProiettili.setPrefSize(SfondoStanza.LARGHEZZA, SfondoStanza.ALTEZZA);
@@ -132,6 +138,8 @@ public class ScenaAzione {
         }
         if (nuova == null) {
             nemicoSprite = null;
+            raccoglibili.clear();
+            suggerimento= null;
             return;
         }
         contenitore.getChildren().addAll(creaScena(nuova), stratoProiettili);
@@ -147,7 +155,10 @@ public class ScenaAzione {
 
     private void tastoPremuto(KeyEvent evento) {
         if (TASTI.contains(evento.getCode())) {
-            tastiPremuti.add(evento.getCode());
+            boolean nuovo = tastiPremuti.add(evento.getCode());
+            if (nuovo && evento.getCode() == KeyCode.E) {
+                interagisci();
+            }
             evento.consume();
         }
     }
@@ -200,8 +211,8 @@ public class ScenaAzione {
         double distanza = distanzaDalNemico(x0, y0, dx, dy);
         boolean sullaLineaDiTiro = distanza >= 0;
         boolean sparato = sullaLineaDiTiro
-                ? suColpoANemico.getAsBoolean()
-                : suColpoAVuoto.getAsBoolean();
+                ? azioni.spara()
+                : azioni.sparaAlVuoto();
         if (!sparato) {
             return;
         }
@@ -270,7 +281,7 @@ public class ScenaAzione {
             }
         }
         for (int i = 0; i < colpiSulSoldato; i++) {
-            if (!suColpoDelNemico.getAsBoolean()) {
+            if (!azioni.colpoDelNemico()) {
                 bloccata = true;
             }
         }
@@ -284,6 +295,7 @@ public class ScenaAzione {
     private Pane creaScena(Stanza stanza) {
         Pane scena = SfondoStanza.per(stanza.getNome());
         nemicoSprite = null;
+        raccoglibili.clear();
         stanza.getNemico().ifPresent(n -> {
             nemicoSprite = Sprite.nemico();
             posiziona(scena, nemicoSprite, 480, 270);
@@ -296,16 +308,23 @@ public class ScenaAzione {
         }
         int posizione = 0;
         for (Arma arma : stanza.getArmi()) {
-            posiziona(scena, ridotto(Sprite.perArma(arma)), 180 + posizione * 60, 250);
+            Group sprite = ridotto(Sprite.perArma(arma));
+            posiziona(scena, sprite, 180 + posizione * 60, 250);
+            raccoglibili.add(new Raccoglibile(sprite, arma.getNome(), () -> azioni.raccogliArma(arma)));
             posizione++;
         }
         for (Consumabile consumabile : stanza.getConsumabili()) {
-            posiziona(scena, ridotto(Sprite.perConsumabile(consumabile)), 180 + posizione * 60, 250);
+            Group sprite = ridotto(Sprite.perConsumabile(consumabile));
+            posiziona(scena, sprite, 180 + posizione * 60, 250);
+            raccoglibili.add(new Raccoglibile(sprite, consumabile.getNome(),
+                    () -> azioni.raccogliConsumabile(consumabile)));
             posizione++;
         }
         scena.getChildren().add(soldato);
         barraSoldato = new BarraVita(datiSoldato.getPuntiVita(), datiSoldato.getPuntiVitaMax());
         scena.getChildren().add(barraSoldato);
+        suggerimento = creaSuggerimento();
+        scena.getChildren().add(suggerimento);
         seguiSoldato();
         return scena;
     }
@@ -320,6 +339,57 @@ public class ScenaAzione {
         nodo.setTranslateX(x);
         nodo.setTranslateY(y);
         scena.getChildren().add(nodo);
+    }
+
+    private void aggiornaSuggerimento() {
+        vicino = null;
+        if (suggerimento == null) {
+            return;
+        }
+        double migliore = RAGGIO_INTERAZIONE;
+        for (Raccoglibile r : raccoglibili) {
+            double distanza = Math.hypot(r.sprite.getTranslateX() - soldato.getTranslateX(),
+                    r.sprite.getTranslateY() - soldato.getTranslateY());
+            if (distanza <= migliore) {
+                migliore = distanza;
+                vicino = r;
+            }
+        }
+        suggerimento.setVisible(vicino != null);
+        if (vicino != null) {
+            suggerimento.setText("E - raccogli " + vicino.etichetta);
+            suggerimento.setTranslateX(vicino.sprite.getTranslateX() - 40);
+            suggerimento.setTranslateY(vicino.sprite.getTranslateY() - 30);
+        }
+    }
+
+    private void interagisci() {
+        Raccoglibile scelto = vicino;
+        if (scelto != null) {
+            scelto.raccogli.getAsBoolean();
+        }
+    }
+
+    private Text creaSuggerimento() {
+        Text testo = new Text();
+        testo.setFont(Font.font("System", FontWeight.BOLD, 13));
+        testo.setFill(Color.WHITE);
+        testo.setStroke(Color.BLACK);
+        testo.setStrokeWidth(0.6);
+        testo.setVisible(false);
+        return testo;
+    }
+
+    private static class Raccoglibile {
+        private final Node sprite;
+        private final String etichetta;
+        private final BooleanSupplier raccogli;
+
+        private Raccoglibile(Node sprite, String etichetta, BooleanSupplier raccogli) {
+            this.sprite = sprite;
+            this.etichetta = etichetta;
+            this.raccogli = raccogli;
+        }
     }
 
 
