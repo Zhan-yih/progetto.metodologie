@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg130680.ui;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Nemico;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
@@ -62,6 +63,11 @@ public class SchermataGioco extends BorderPane {
             @Override
             public boolean raccogliConsumabile(Consumabile consumabile) {
                 return esegui(() -> controller.raccogliConsumabile(consumabile));
+            }
+
+            @Override
+            public boolean liberaOstaggio(Ostaggio ostaggio){
+                return esegui(() -> controller.liberaOstaggio(ostaggio));
             }
         });
         registro.setEditable(false);

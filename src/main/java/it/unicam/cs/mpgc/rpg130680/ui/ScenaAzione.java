@@ -24,7 +24,11 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 
@@ -303,21 +307,30 @@ public class ScenaAzione {
             posiziona(scena, barra, 480 - BarraVita.LARGHEZZA / 2, 270 - ALTEZZA_BARRA);
         });
         List<Ostaggio> ostaggi = stanza.ostaggiDaLiberare();
+        boolean liberabili = stanza.getNemico().isEmpty();
         for (int i = 0; i < ostaggi.size(); i++) {
-            posiziona(scena, Sprite.ostaggio(), 250 + i * 60, 270);
+            Ostaggio ostaggio = ostaggi.get(i);
+            double x = 250 + i * 60;
+            Group sprite = Sprite.ostaggio();
+            posiziona(scena, sprite, x, 270);
+            if (liberabili) {
+                raccoglibili.add(new Raccoglibile(sprite, "libera l'ostaggio", 80,
+                        () -> azioni.liberaOstaggio(ostaggio), () -> animaLiberazione(x, 270)));
+            }
         }
         int posizione = 0;
         for (Arma arma : stanza.getArmi()) {
             Group sprite = ridotto(Sprite.perArma(arma));
             posiziona(scena, sprite, 180 + posizione * 60, 250);
-            raccoglibili.add(new Raccoglibile(sprite, arma.getNome(), () -> azioni.raccogliArma(arma)));
+            raccoglibili.add(new Raccoglibile(sprite, "raccogli " + arma.getNome(), 30,
+                    () -> azioni.raccogliArma(arma), () -> { }));
             posizione++;
         }
         for (Consumabile consumabile : stanza.getConsumabili()) {
             Group sprite = ridotto(Sprite.perConsumabile(consumabile));
             posiziona(scena, sprite, 180 + posizione * 60, 250);
-            raccoglibili.add(new Raccoglibile(sprite, consumabile.getNome(),
-                    () -> azioni.raccogliConsumabile(consumabile)));
+            raccoglibili.add(new Raccoglibile(sprite, "raccogli " + consumabile.getNome(), 30,
+                    () -> azioni.raccogliConsumabile(consumabile), () -> { }));
             posizione++;
         }
         scena.getChildren().add(soldato);
@@ -357,16 +370,16 @@ public class ScenaAzione {
         }
         suggerimento.setVisible(vicino != null);
         if (vicino != null) {
-            suggerimento.setText("E - raccogli " + vicino.etichetta);
+            suggerimento.setText("E - " + vicino.azione);
             suggerimento.setTranslateX(vicino.sprite.getTranslateX() - 40);
-            suggerimento.setTranslateY(vicino.sprite.getTranslateY() - 30);
+            suggerimento.setTranslateY(vicino.sprite.getTranslateY() - vicino.rialzo);
         }
     }
 
     private void interagisci() {
         Raccoglibile scelto = vicino;
-        if (scelto != null) {
-            scelto.raccogli.getAsBoolean();
+        if (scelto != null && scelto.raccogli.getAsBoolean()) {
+            scelto.effetto.run();
         }
     }
 
@@ -380,15 +393,59 @@ public class ScenaAzione {
         return testo;
     }
 
+    private void animaLiberazione(double x, double y) {
+        Group fantasma = Sprite.ostaggio();
+        fantasma.setTranslateX(x);
+        fantasma.setTranslateY(y);
+        Text testo = new Text("Liberato!");
+        testo.setFont(Font.font("System", FontWeight.BOLD, 16));
+        testo.setFill(Color.LIMEGREEN);
+        testo.setStroke(Color.BLACK);
+        testo.setStrokeWidth(0.6);
+        testo.setTranslateX(x - 30);
+        testo.setTranslateY(y - 80);
+        Circle onda = new Circle(x, y - 30, 20, Color.TRANSPARENT);
+        onda.setStroke(Color.LIMEGREEN);
+        onda.setStrokeWidth(3);
+        stratoProiettili.getChildren().addAll(onda, fantasma, testo);
+
+        TranslateTransition cammina = new TranslateTransition(Duration.seconds(1.2), fantasma);
+        cammina.setByX(70);
+        FadeTransition dissolvenza = new FadeTransition(Duration.seconds(1.2), fantasma);
+        dissolvenza.setFromValue(1);
+        dissolvenza.setToValue(0);
+        TranslateTransition sale = new TranslateTransition(Duration.seconds(1.2), testo);
+        sale.setByY(-30);
+        FadeTransition testoSvanisce = new FadeTransition(Duration.seconds(1.2), testo);
+        testoSvanisce.setFromValue(1);
+        testoSvanisce.setToValue(0);
+        ScaleTransition espande = new ScaleTransition(Duration.seconds(0.8), onda);
+        espande.setToX(3);
+        espande.setToY(3);
+        FadeTransition ondaSvanisce = new FadeTransition(Duration.seconds(0.8), onda);
+        ondaSvanisce.setFromValue(0.9);
+        ondaSvanisce.setToValue(0);
+
+        ParallelTransition animazione = new ParallelTransition(
+                cammina, dissolvenza, sale, testoSvanisce, espande, ondaSvanisce);
+        animazione.setOnFinished(e -> stratoProiettili.getChildren().removeAll(onda, fantasma, testo));
+        animazione.play();
+    }
+
     private static class Raccoglibile {
         private final Node sprite;
-        private final String etichetta;
+        private final String azione;
+        private final double rialzo;
         private final BooleanSupplier raccogli;
+        private final Runnable effetto;
 
-        private Raccoglibile(Node sprite, String etichetta, BooleanSupplier raccogli) {
+        private Raccoglibile(Node sprite, String azione, double rialzo,
+                             BooleanSupplier raccogli, Runnable effetto) {
             this.sprite = sprite;
-            this.etichetta = etichetta;
+            this.azione = azione;
+            this.rialzo = rialzo;
             this.raccogli = raccogli;
+            this.effetto = effetto;
         }
     }
 
