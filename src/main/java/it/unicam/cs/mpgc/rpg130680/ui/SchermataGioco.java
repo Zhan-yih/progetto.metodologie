@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import javafx.scene.layout.StackPane;
 
 public class SchermataGioco extends BorderPane {
     private final PartitaController controller;
@@ -30,6 +31,7 @@ public class SchermataGioco extends BorderPane {
     private final Button pulsanteCompleta = new Button("Completa stanza");
     private final VBox inventario = new VBox(6);
     private final ScenaAzione scenaAzione;
+    private final Label messaggioFine= new Label();
 
     public SchermataGioco(PartitaController controller) {
         if (controller == null) {
@@ -44,7 +46,11 @@ public class SchermataGioco extends BorderPane {
         registro.setEditable(false);
         registro.setPrefRowCount(5);
         setTop(titolo);
-        setCenter(scenaAzione.getNodo());
+        messaggioFine.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white;"
+                + "-fx-background-color: rgba(0,0,0,0.75); -fx-padding: 20 40 20 40;");
+        messaggioFine.setVisible(false);
+        messaggioFine.setMouseTransparent(true);
+        setCenter(new StackPane(scenaAzione.getNodo(), messaggioFine));
         setLeft(creaPannelloStanze());
         setRight(creaPannelloAzioni());
         setBottom(registro);
@@ -111,7 +117,10 @@ public class SchermataGioco extends BorderPane {
             testo.append(" - ").append(partita.getStato());
         }
         titolo.setText(testo.toString());
-        scenaAzione.mostra(corrente);
+        scenaAzione.mostra(corrente, partita.getSoldato());
+        messaggioFine.setVisible(!inCorso);
+        messaggioFine.setText(partita.getStato() == StatoPartita.VITTORIA
+                ? "VITTORIA! Ostaggi salvati" : "SCONFITTA");
         for (int i = 0; i < pulsantiStanze.size(); i++) {
             boolean esplorata = partita.getStanzeEsplorate().contains(i);
             pulsantiStanze.get(i).setDisable(!inCorso || esplorata || corrente.isPresent());

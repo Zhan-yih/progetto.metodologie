@@ -1,9 +1,11 @@
 package it.unicam.cs.mpgc.rpg130680.ui;
 
 import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
+import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
+import it.unicam.cs.mpgc.rpg130680.ui.grafica.BarraVita;
 import it.unicam.cs.mpgc.rpg130680.ui.grafica.SfondoStanza;
 import it.unicam.cs.mpgc.rpg130680.ui.grafica.Sprite;
 import javafx.animation.AnimationTimer;
@@ -57,6 +59,9 @@ public class ScenaAzione {
     private double ricaricaNemico;
     private boolean bloccata;
     private final BooleanSupplier suColpoDelNemico;
+    private static final double ALTEZZA_BARRA= 95;
+    private Soldato datiSoldato;
+    private BarraVita barraSoldato;
 
     private final AnimationTimer timer = new AnimationTimer() {
         private long ultimo;
@@ -67,6 +72,7 @@ public class ScenaAzione {
                 double secondi= (adesso - ultimo) / 1_000_000_000.0;
                 ricarica = Math.max(0, ricarica - secondi);
                 muovi(secondi);
+                seguiSoldato();
                 aggiornaNemico(secondi);
                 if (tastiPremuti.contains(KeyCode.SPACE)) {
                     provaASparare();
@@ -78,7 +84,7 @@ public class ScenaAzione {
     };
 
     public ScenaAzione(BooleanSupplier suColpoANemico, BooleanSupplier suColpoAVuoto, BooleanSupplier suColpoDelNemico) {
-        if (suColpoANemico == null || suColpoAVuoto == null) {
+        if (suColpoANemico == null || suColpoAVuoto == null || suColpoDelNemico == null) {
             throw new IllegalArgumentException("azioni di sparo nulle");
         }
         this.suColpoANemico= suColpoANemico;
@@ -110,7 +116,8 @@ public class ScenaAzione {
         return contenitore;
     }
 
-    public void mostra(Optional<Stanza> stanza) {
+    public void mostra(Optional<Stanza> stanza, Soldato soldatoInGioco) {
+        datiSoldato= soldatoInGioco;
         Stanza nuova = stanza.orElse(null);
         boolean stessaStanza = nuova == stanzaMostrata;
         stanzaMostrata = nuova;
@@ -252,12 +259,12 @@ public class ScenaAzione {
             p.forma.setCenterX(p.forma.getCenterX() + p.vx * secondi);
             p.forma.setCenterY(p.forma.getCenterY() + p.vy * secondi);
             p.restante -= Math.hypot(p.vx, p.vy) * secondi;
-            boolean colpito = p.ostile && soldato.getBoundsInParent()
+            boolean colpito = p.ostile && nemicoSprite != null && soldato.getBoundsInParent()
                     .contains(p.forma.getCenterX(), p.forma.getCenterY());
             if (colpito) {
                 colpiSulSoldato++;
             }
-            if (colpito || p.restante <= 0 || fuori(p.forma)) {
+            if (colpito || p.restante <= 0 || fuori(p.forma) || (p.ostile && nemicoSprite == null)) {
                 stratoProiettili.getChildren().remove(p.forma);
                 iteratore.remove();
             }
@@ -280,6 +287,8 @@ public class ScenaAzione {
         stanza.getNemico().ifPresent(n -> {
             nemicoSprite = Sprite.nemico();
             posiziona(scena, nemicoSprite, 480, 270);
+            BarraVita barra = new BarraVita(n.getPuntiVita(), n.getPuntiVitaMax());
+            posiziona(scena, barra, 480 - BarraVita.LARGHEZZA / 2, 270 - ALTEZZA_BARRA);
         });
         List<Ostaggio> ostaggi = stanza.ostaggiDaLiberare();
         for (int i = 0; i < ostaggi.size(); i++) {
@@ -295,6 +304,9 @@ public class ScenaAzione {
             posizione++;
         }
         scena.getChildren().add(soldato);
+        barraSoldato = new BarraVita(datiSoldato.getPuntiVita(), datiSoldato.getPuntiVitaMax());
+        scena.getChildren().add(barraSoldato);
+        seguiSoldato();
         return scena;
     }
 
@@ -325,6 +337,14 @@ public class ScenaAzione {
             this.restante = restante;
             this.ostile = ostile;
         }
+    }
+
+    private void seguiSoldato() {
+        if (barraSoldato == null) {
+            return;
+        }
+        barraSoldato.setTranslateX(soldato.getTranslateX() - BarraVita.LARGHEZZA / 2);
+        barraSoldato.setTranslateY(soldato.getTranslateY() - ALTEZZA_BARRA);
     }
 }
 
