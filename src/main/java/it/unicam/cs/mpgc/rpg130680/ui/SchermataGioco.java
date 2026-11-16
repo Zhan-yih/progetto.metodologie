@@ -27,7 +27,6 @@ public class SchermataGioco extends BorderPane {
     private final Label titolo = new Label();
     private final TextArea registro = new TextArea();
     private final List<Button> pulsantiStanze = new ArrayList<>();
-    private final Button pulsanteCombatti = new Button("Combatti");
     private final Button pulsanteCompleta = new Button("Completa stanza");
     private final VBox inventario = new VBox(6);
     private final ScenaAzione scenaAzione;
@@ -70,7 +69,6 @@ public class SchermataGioco extends BorderPane {
     }
 
     private VBox creaPannelloAzioni() {
-        pulsanteCombatti.setOnAction(e -> esegui(controller::combatti));
         pulsanteCompleta.setOnAction(e -> esegui(controller::completa));
         Button salva = new Button("Salva");
         salva.setOnAction(e -> esegui(() -> {
@@ -82,7 +80,7 @@ public class SchermataGioco extends BorderPane {
             controller.carica();
             return "Partita caricata.";
         }));
-        VBox pannello = new VBox(8, new Label("Azioni"), pulsanteCombatti, pulsanteCompleta,
+        VBox pannello = new VBox(8, new Label("Azioni"), pulsanteCompleta,
                 salva, carica, new Label("Inventario"), inventario);
         pannello.setPadding(new Insets(0, 0, 0, 10));
         return pannello;
@@ -118,7 +116,6 @@ public class SchermataGioco extends BorderPane {
             boolean esplorata = partita.getStanzeEsplorate().contains(i);
             pulsantiStanze.get(i).setDisable(!inCorso || esplorata || corrente.isPresent());
         }
-        pulsanteCombatti.setDisable(!inCorso || nemico.isEmpty());
         pulsanteCompleta.setDisable(!inCorso || corrente.isEmpty() || nemico.isPresent());
         aggiornaInventario();
     }
