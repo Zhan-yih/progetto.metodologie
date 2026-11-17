@@ -18,8 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.scene.layout.StackPane;
@@ -28,8 +26,6 @@ public class SchermataGioco extends BorderPane {
     private final PartitaController controller;
     private final Label titolo = new Label();
     private final TextArea registro = new TextArea();
-    private final List<Button> pulsantiStanze = new ArrayList<>();
-    private final Button pulsanteCompleta = new Button("Completa stanza");
     private final VBox inventario = new VBox(6);
     private final ScenaAzione scenaAzione;
     private final Label messaggioFine= new Label();
@@ -69,6 +65,11 @@ public class SchermataGioco extends BorderPane {
             public boolean liberaOstaggio(Ostaggio ostaggio){
                 return esegui(() -> controller.liberaOstaggio(ostaggio));
             }
+
+            @Override
+            public boolean attraversaPorta(){
+                return esegui(controller::attraversaPorta);
+            }
         });
         registro.setEditable(false);
         registro.setPrefRowCount(5);
@@ -78,31 +79,17 @@ public class SchermataGioco extends BorderPane {
         messaggioFine.setVisible(false);
         messaggioFine.setMouseTransparent(true);
         setCenter(new StackPane(scenaAzione.getNodo(), messaggioFine));
-        setLeft(creaPannelloStanze());
         setRight(creaPannelloAzioni());
         setBottom(registro);
         setPadding(new Insets(10));
+        Partita partita = controller.getPartita();
+        if (partita.getStanzaCorrente().isEmpty() && partita.getStanzeEsplorate().isEmpty()) {
+            esegui(() -> controller.entra(0));
+        }
         aggiorna();
     }
 
-    private VBox creaPannelloStanze() {
-        VBox pannello = new VBox(8);
-        pannello.setPadding(new Insets(0, 10, 0, 0));
-        pannello.getChildren().add(new Label("Stanze"));
-        List<Stanza> stanze = controller.getPartita().getMappa().getStanze();
-        for (int i = 0; i < stanze.size(); i++) {
-            int indice = i;
-            Button pulsante = new Button(stanze.get(i).getNome());
-            pulsante.setMaxWidth(Double.MAX_VALUE);
-            pulsante.setOnAction(e -> esegui(() -> controller.entra(indice)));
-            pulsantiStanze.add(pulsante);
-            pannello.getChildren().add(pulsante);
-        }
-        return pannello;
-    }
-
     private VBox creaPannelloAzioni() {
-        pulsanteCompleta.setOnAction(e -> esegui(controller::completa));
         Button salva = new Button("Salva");
         salva.setOnAction(e -> esegui(() -> {
             controller.salva();
@@ -113,7 +100,7 @@ public class SchermataGioco extends BorderPane {
             controller.carica();
             return "Partita caricata.";
         }));
-        VBox pannello = new VBox(8, new Label("Azioni"), pulsanteCompleta,
+        VBox pannello = new VBox(8, new Label("Azioni"),
                 salva, carica, new Label("Inventario"), inventario);
         pannello.setPadding(new Insets(0, 0, 0, 10));
         return pannello;
@@ -148,11 +135,6 @@ public class SchermataGioco extends BorderPane {
         messaggioFine.setVisible(!inCorso);
         messaggioFine.setText(partita.getStato() == StatoPartita.VITTORIA
                 ? "VITTORIA! Ostaggi salvati" : "SCONFITTA");
-        for (int i = 0; i < pulsantiStanze.size(); i++) {
-            boolean esplorata = partita.getStanzeEsplorate().contains(i);
-            pulsantiStanze.get(i).setDisable(!inCorso || esplorata || corrente.isPresent());
-        }
-        pulsanteCompleta.setDisable(!inCorso || corrente.isEmpty() || nemico.isPresent());
         aggiornaInventario();
     }
 

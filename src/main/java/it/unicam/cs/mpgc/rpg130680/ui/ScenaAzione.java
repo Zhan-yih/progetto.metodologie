@@ -21,6 +21,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -73,6 +74,7 @@ public class ScenaAzione {
     private final List<Raccoglibile> raccoglibili = new ArrayList<>();
     private Raccoglibile vicino;
     private Text suggerimento;
+    private boolean portaAperta;
 
     private final AnimationTimer timer = new AnimationTimer() {
         private long ultimo;
@@ -83,6 +85,7 @@ public class ScenaAzione {
                 double secondi= (adesso - ultimo) / 1_000_000_000.0;
                 ricarica = Math.max(0, ricarica - secondi);
                 muovi(secondi);
+                controllaPorta();
                 seguiSoldato();
                 aggiornaSuggerimento();
                 aggiornaNemico(secondi);
@@ -139,6 +142,12 @@ public class ScenaAzione {
             proiettili.clear();
             ricaricaNemico= ATTESA_INIZIALE;
             bloccata= false;
+            if (nuova != null) {
+                FadeTransition ingresso = new FadeTransition(Duration.seconds(0.5), contenitore);
+                ingresso.setFromValue(0);
+                ingresso.setToValue(1);
+                ingresso.play();
+            }
         }
         if (nuova == null) {
             nemicoSprite = null;
@@ -333,6 +342,8 @@ public class ScenaAzione {
                     () -> azioni.raccogliConsumabile(consumabile), () -> { }));
             posizione++;
         }
+        portaAperta = stanza.getNemico().isEmpty() && stanza.ostaggiDaLiberare().isEmpty();
+        scena.getChildren().add(creaPorta(portaAperta));
         scena.getChildren().add(soldato);
         barraSoldato = new BarraVita(datiSoldato.getPuntiVita(), datiSoldato.getPuntiVitaMax());
         scena.getChildren().add(barraSoldato);
@@ -432,6 +443,37 @@ public class ScenaAzione {
         animazione.play();
     }
 
+    private void controllaPorta() {
+        if (!portaAperta || stanzaMostrata == null || soldato.getTranslateX() < X_MAX - 5) {
+            return;
+        }
+        portaAperta = false;
+        azioni.attraversaPorta();
+    }
+
+    private Group creaPorta(boolean aperta) {
+        Rectangle telaio = new Rectangle(0, -95, 45, 95);
+        telaio.setFill(aperta ? Color.web("#0b2e13") : Color.SADDLEBROWN);
+        telaio.setStroke(aperta ? Color.LIMEGREEN : Color.BLACK);
+        telaio.setStrokeWidth(3);
+        Text etichetta = new Text(aperta ? "USCITA" : "BLOCCATA");
+        etichetta.setFont(Font.font("System", FontWeight.BOLD, 12));
+        etichetta.setFill(aperta ? Color.LIMEGREEN : Color.ORANGERED);
+        etichetta.setStroke(Color.BLACK);
+        etichetta.setStrokeWidth(0.5);
+        etichetta.setX(-4);
+        etichetta.setY(-102);
+        Group porta = new Group(telaio, etichetta);
+        if (!aperta) {
+            Circle serratura = new Circle(36, -45, 4, Color.RED);
+            porta.getChildren().add(serratura);
+        }
+        porta.setTranslateX(SfondoStanza.LARGHEZZA - 52);
+        porta.setTranslateY(292);
+        return porta;
+    }
+
+
     private static class Raccoglibile {
         private final Node sprite;
         private final String azione;
@@ -448,7 +490,6 @@ public class ScenaAzione {
             this.effetto = effetto;
         }
     }
-
 
     private static class Proiettile {
         private final Circle forma;

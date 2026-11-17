@@ -16,4 +16,6 @@ public interface AzioniScena {
     boolean raccogliConsumabile(Consumabile consumabile);
 
     boolean liberaOstaggio(Ostaggio ostaggio);
+
+    boolean attraversaPorta();
 }
