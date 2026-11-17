@@ -18,6 +18,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.scene.layout.StackPane;
@@ -70,6 +73,23 @@ public class SchermataGioco extends BorderPane {
             public boolean attraversaPorta(){
                 return esegui(controller::attraversaPorta);
             }
+
+            @Override
+            public boolean equipaggiaArma(int posizione) {
+                List<Arma> armi = new ArrayList<>(controller.getPartita().getSoldato().getArmi());
+                return posizione < armi.size() && esegui(() -> controller.equipaggia(armi.get(posizione)));
+            }
+
+            @Override
+            public Optional<Consumabile> usaConsumabile(int posizione) {
+                List<Consumabile> consumabili =
+                        new ArrayList<>(controller.getPartita().getSoldato().getConsumabili());
+                if (posizione >= consumabili.size()) {
+                    return Optional.empty();
+                }
+                Consumabile scelto = consumabili.get(posizione);
+                return esegui(() -> controller.usa(scelto)) ? Optional.of(scelto) : Optional.empty();
+            }
         });
         registro.setEditable(false);
         registro.setPrefRowCount(5);
@@ -100,8 +120,9 @@ public class SchermataGioco extends BorderPane {
             controller.carica();
             return "Partita caricata.";
         }));
-        VBox pannello = new VBox(8, new Label("Azioni"),
-                salva, carica, new Label("Inventario"), inventario);
+        Label comandi = new Label("WASD: muovi\nMouse/SPAZIO: spara\nE: interagisci\n1-3: arma\n4-6: consumabile");
+        VBox pannello = new VBox(8, new Label("Azioni"), salva, carica, comandi,
+                new Label("Inventario"), inventario);
         pannello.setPadding(new Insets(0, 0, 0, 10));
         return pannello;
     }
@@ -141,20 +162,26 @@ public class SchermataGioco extends BorderPane {
     private void aggiornaInventario() {
         inventario.getChildren().clear();
         Soldato soldato = controller.getPartita().getSoldato();
-        for (Arma arma : soldato.getArmi()) {
+        List<Arma> armi = new ArrayList<>(soldato.getArmi());
+        for (int i = 0; i < armi.size(); i++) {
+            Arma arma = armi.get(i);
             boolean equipaggiata = soldato.getArmaEquipaggiata().map(a -> a == arma).orElse(false);
-            Button pulsante = new Button((equipaggiata ? "> " : "") + arma.getNome()
+            Label voce = new Label(numero(i, 1) + (equipaggiata ? "> " : "") + arma.getNome()
                     + " (" + arma.getMunizioni() + ")");
-            pulsante.setGraphic(icona(Sprite.perArma(arma)));
-            pulsante.setOnAction(e -> esegui(() -> controller.equipaggia(arma)));
-            inventario.getChildren().add(pulsante);
+            voce.setGraphic(icona(Sprite.perArma(arma)));
+            inventario.getChildren().add(voce);
         }
-        for (Consumabile consumabile : soldato.getConsumabili()) {
-            Button pulsante = new Button(consumabile.getNome());
-            pulsante.setGraphic(icona(Sprite.perConsumabile(consumabile)));
-            pulsante.setOnAction(e -> esegui(() -> controller.usa(consumabile)));
-            inventario.getChildren().add(pulsante);
+        List<Consumabile> consumabili = new ArrayList<>(soldato.getConsumabili());
+        for (int i = 0; i < consumabili.size(); i++) {
+            Consumabile consumabile = consumabili.get(i);
+            Label voce = new Label(numero(i, 4) + consumabile.getNome());
+            voce.setGraphic(icona(Sprite.perConsumabile(consumabile)));
+            inventario.getChildren().add(voce);
         }
+    }
+
+    private String numero(int posizione, int primo) {
+        return posizione < 3 ? "[" + (primo + posizione) + "] " : "      ";
     }
 
     private Node icona(Group sprite) {

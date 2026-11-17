@@ -4,11 +4,13 @@ import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.entity.Soldato;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
+import it.unicam.cs.mpgc.rpg130680.model.item.GranataFlash;
+import it.unicam.cs.mpgc.rpg130680.model.item.KitMedico;
 import it.unicam.cs.mpgc.rpg130680.model.map.Stanza;
 import it.unicam.cs.mpgc.rpg130680.ui.grafica.BarraVita;
 import it.unicam.cs.mpgc.rpg130680.ui.grafica.SfondoStanza;
 import it.unicam.cs.mpgc.rpg130680.ui.grafica.Sprite;
-import javafx.animation.AnimationTimer;
+import javafx.animation.*;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
@@ -25,10 +27,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -52,8 +50,8 @@ public class ScenaAzione {
     private static final double ATTESA_INIZIALE= 1.5;
     private static final double CANNA_NEMICO_X= -20;
     private static final Set<KeyCode> TASTI = Set.of(
-            KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.E,
-            KeyCode.UP, KeyCode.DOWN, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.SPACE);
+            KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.E, KeyCode.DIGIT1, KeyCode.DIGIT2, KeyCode.DIGIT3, KeyCode.DIGIT4,
+            KeyCode.DIGIT5, KeyCode.DIGIT6, KeyCode.UP, KeyCode.DOWN, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.SPACE);
     private final StackPane contenitore= new StackPane();
     private final Pane stratoProiettili= new Pane();
     private final List<Proiettile> proiettili= new ArrayList<>();
@@ -169,11 +167,28 @@ public class ScenaAzione {
     private void tastoPremuto(KeyEvent evento) {
         if (TASTI.contains(evento.getCode())) {
             boolean nuovo = tastiPremuti.add(evento.getCode());
-            if (nuovo && evento.getCode() == KeyCode.E) {
-                interagisci();
+            if (nuovo) {
+                tastoSingolo(evento.getCode());
             }
             evento.consume();
         }
+    }
+
+    private void tastoSingolo(KeyCode codice) {
+        switch (codice) {
+            case E -> interagisci();
+            case DIGIT1 -> azioni.equipaggiaArma(0);
+            case DIGIT2 -> azioni.equipaggiaArma(1);
+            case DIGIT3 -> azioni.equipaggiaArma(2);
+            case DIGIT4 -> usa(0);
+            case DIGIT5 -> usa(1);
+            case DIGIT6 -> usa(2);
+            default -> { }
+        }
+    }
+
+    private void usa(int posizione) {
+        azioni.usaConsumabile(posizione).ifPresent(this::animaConsumabile);
     }
 
     private void tastoRilasciato(KeyEvent evento) {
@@ -471,6 +486,92 @@ public class ScenaAzione {
         porta.setTranslateX(SfondoStanza.LARGHEZZA - 52);
         porta.setTranslateY(292);
         return porta;
+    }
+
+    private void animaConsumabile(Consumabile consumabile) {
+        switch (consumabile) {
+            case KitMedico kit -> animaCura(kit.getQuantita());
+            case GranataFlash flash -> animaFlash();
+            default -> animaFumo();
+        }
+    }
+
+    private void animaCura(int quantita) {
+        double x = soldato.getTranslateX();
+        double y = soldato.getTranslateY();
+        Text testo = testoEffetto("+" + quantita + " PV", Color.LIMEGREEN, x - 25, y - 110);
+        Circle anello = new Circle(x, y - 35, 15, Color.TRANSPARENT);
+        anello.setStroke(Color.LIMEGREEN);
+        anello.setStrokeWidth(3);
+        riproduci(new ParallelTransition(spostaY(testo, -40, 1.2), svanisce(testo, 1.2),
+                ingrandisce(anello, 3, 0.8), svanisce(anello, 0.8)), anello, testo);
+    }
+
+    private void animaFlash() {
+        Rectangle lampo = new Rectangle(SfondoStanza.LARGHEZZA, SfondoStanza.ALTEZZA, Color.WHITE);
+        FadeTransition dissolvenza = new FadeTransition(Duration.seconds(0.7), lampo);
+        dissolvenza.setFromValue(0.9);
+        dissolvenza.setToValue(0);
+        riproduci(new ParallelTransition(dissolvenza), lampo);
+        if (nemicoSprite != null) {
+            Text testo = testoEffetto("Stordito!", Color.GOLD,
+                    nemicoSprite.getTranslateX() - 30, nemicoSprite.getTranslateY() - 110);
+            riproduci(new ParallelTransition(spostaY(testo, -30, 1.2), svanisce(testo, 1.2)), testo);
+        }
+    }
+
+    private void animaFumo() {
+        double cx = nemicoSprite != null ? nemicoSprite.getTranslateX() : soldato.getTranslateX() + 120;
+        double cy = nemicoSprite != null ? nemicoSprite.getTranslateY() : 270;
+        List<Node> nuvole = new ArrayList<>();
+        List<Animation> animazioni = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Circle nuvola = new Circle(cx + (i - 2) * 18, cy - 30 - (i % 2) * 15, 18,
+                    Color.rgb(170, 170, 170, 0.6));
+            nuvole.add(nuvola);
+            animazioni.add(ingrandisce(nuvola, 2.5, 1.6));
+            animazioni.add(svanisce(nuvola, 1.6));
+            animazioni.add(spostaY(nuvola, -30, 1.6));
+        }
+        riproduci(new ParallelTransition(animazioni.toArray(new Animation[0])),
+                nuvole.toArray(new Node[0]));
+    }
+
+    private Text testoEffetto(String contenuto, Color colore, double x, double y) {
+        Text testo = new Text(contenuto);
+        testo.setFont(Font.font("System", FontWeight.BOLD, 16));
+        testo.setFill(colore);
+        testo.setStroke(Color.BLACK);
+        testo.setStrokeWidth(0.6);
+        testo.setTranslateX(x);
+        testo.setTranslateY(y);
+        return testo;
+    }
+
+    private void riproduci(ParallelTransition animazione, Node... nodi) {
+        stratoProiettili.getChildren().addAll(nodi);
+        animazione.setOnFinished(e -> stratoProiettili.getChildren().removeAll(nodi));
+        animazione.play();
+    }
+
+    private TranslateTransition spostaY(Node nodo, double delta, double secondi) {
+        TranslateTransition t = new TranslateTransition(Duration.seconds(secondi), nodo);
+        t.setByY(delta);
+        return t;
+    }
+
+    private FadeTransition svanisce(Node nodo, double secondi) {
+        FadeTransition t = new FadeTransition(Duration.seconds(secondi), nodo);
+        t.setFromValue(1);
+        t.setToValue(0);
+        return t;
+    }
+
+    private ScaleTransition ingrandisce(Node nodo, double fattore, double secondi) {
+        ScaleTransition t = new ScaleTransition(Duration.seconds(secondi), nodo);
+        t.setToX(fattore);
+        t.setToY(fattore);
+        return t;
     }
 
 

@@ -4,6 +4,8 @@ import it.unicam.cs.mpgc.rpg130680.model.entity.Ostaggio;
 import it.unicam.cs.mpgc.rpg130680.model.item.Arma;
 import it.unicam.cs.mpgc.rpg130680.model.item.Consumabile;
 
+import java.util.Optional;
+
 public interface AzioniScena {
     boolean spara();
 
@@ -18,4 +20,8 @@ public interface AzioniScena {
     boolean liberaOstaggio(Ostaggio ostaggio);
 
     boolean attraversaPorta();
+
+    boolean equipaggiaArma(int posizione);
+
+    Optional<Consumabile> usaConsumabile(int posizione);
 }
