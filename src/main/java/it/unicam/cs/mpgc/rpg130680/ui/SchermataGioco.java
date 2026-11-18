@@ -18,7 +18,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.geometry.Pos;
+import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +36,7 @@ public class SchermataGioco extends BorderPane {
     private final VBox inventario = new VBox(6);
     private final ScenaAzione scenaAzione;
     private final Label messaggioFine= new Label();
+    private final VBox introduzione= new VBox(10);
 
     public SchermataGioco(PartitaController controller) {
         if (controller == null) {
@@ -98,7 +103,7 @@ public class SchermataGioco extends BorderPane {
                 + "-fx-background-color: rgba(0,0,0,0.75); -fx-padding: 20 40 20 40;");
         messaggioFine.setVisible(false);
         messaggioFine.setMouseTransparent(true);
-        setCenter(new StackPane(scenaAzione.getNodo(), messaggioFine));
+        setCenter(new StackPane(scenaAzione.getNodo(), messaggioFine, introduzione));
         setRight(creaPannelloAzioni());
         setBottom(registro);
         setPadding(new Insets(10));
@@ -107,6 +112,8 @@ public class SchermataGioco extends BorderPane {
             esegui(() -> controller.entra(0));
         }
         aggiorna();
+        preparaIntroduzione();
+        mostraIntroduzione();
     }
 
     private VBox creaPannelloAzioni() {
@@ -178,6 +185,31 @@ public class SchermataGioco extends BorderPane {
             voce.setGraphic(icona(Sprite.perConsumabile(consumabile)));
             inventario.getChildren().add(voce);
         }
+    }
+
+    private void preparaIntroduzione() {
+        Label missione = new Label("BREAKOUT");
+        missione.setStyle("-fx-font-size: 56px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label obiettivo = new Label("Elimina i nemici. Libera gli ostaggi.");
+        obiettivo.setStyle("-fx-font-size: 20px; -fx-text-fill: #cccccc;");
+        introduzione.setAlignment(Pos.CENTER);
+        introduzione.setStyle("-fx-background-color: rgba(0,0,0,0.85);");
+        introduzione.getChildren().addAll(missione, obiettivo);
+        introduzione.setMouseTransparent(true);
+        introduzione.setOpacity(0);
+    }
+
+    private void mostraIntroduzione() {
+        FadeTransition entra = new FadeTransition(Duration.seconds(0.8), introduzione);
+        entra.setFromValue(0);
+        entra.setToValue(1);
+        PauseTransition pausa = new PauseTransition(Duration.seconds(1.8));
+        FadeTransition esce = new FadeTransition(Duration.seconds(1.0), introduzione);
+        esce.setFromValue(1);
+        esce.setToValue(0);
+        SequentialTransition sequenza = new SequentialTransition(entra, pausa, esce);
+        sequenza.setOnFinished(e -> introduzione.setVisible(false));
+        sequenza.play();
     }
 
     private String numero(int posizione, int primo) {

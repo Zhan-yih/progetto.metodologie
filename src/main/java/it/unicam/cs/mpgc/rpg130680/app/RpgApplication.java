@@ -21,8 +21,8 @@ public class RpgApplication extends Application {
         Partita partita = new Partita(new Soldato("Soldato"), MappaIniziale.crea(), combattimento);
         PartitaController controller = new PartitaController(partita,
                 new XmlSalvataggioRepository(Path.of("salvataggio.xml")), combattimento);
-        stage.setTitle("RPG");
         stage.setScene(new Scene(new SchermataGioco(controller), 900, 600));
+        stage.setTitle("Breakout");
         stage.show();
     }
 }
